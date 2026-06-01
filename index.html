@@ -17,8 +17,12 @@
                 var redirect = sessionStorage.getItem('gh-spa-redirect');
                 if (redirect) {
                     sessionStorage.removeItem('gh-spa-redirect');
-                    // На GitHub Pages добавляем repo name к пути
-                    if (window.location.hostname.indexOf('github.io') !== -1) {
+                    // Если НЕ GitHub Pages — не восстанавливаем старый путь с /repo-name/
+                    if (window.location.hostname.indexOf('github.io') === -1) {
+                        // Netlify/другой хостинг — убираем /repo-name/ из пути если есть
+                        redirect = redirect.replace(/^\/metafirestorm/, '');
+                    } else {
+                        // GitHub Pages — добавляем repo name если нужно
                         var parts = window.location.pathname.split('/').filter(Boolean);
                         if (parts.length > 0) {
                             var base = '/' + parts[0];
