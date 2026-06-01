@@ -28,10 +28,23 @@ function App(){
     catch(e) { return fallback; }
   };
 
+  // ── GitHub Pages base path (repo name) ───────────────────────────────
+  const BASE_PATH = (function(){
+    if (window.location.hostname.indexOf('github.io') !== -1) {
+      const parts = window.location.pathname.split('/').filter(Boolean);
+      if (parts.length > 0) return parts[0];
+    }
+    return '';
+  })();
+
   // ── Парсинг pretty pathname → состояние ────────────────────────────────
   function parsePath(path) {
     const clean = path.replace(/^\/|\/$/g, '');
-    const parts = clean.split('/').filter(Boolean);
+    let parts = clean.split('/').filter(Boolean);
+    // Убираем base path (repo name) на GitHub Pages
+    if (BASE_PATH && parts[0] === BASE_PATH) {
+      parts = parts.slice(1);
+    }
     if (!parts.length) return {};
 
     if (parts[0] === 'raidguide' && parts[1]) {
@@ -118,8 +131,9 @@ function App(){
     } else {
       path = '/';
     }
-    if (window.location.pathname !== path) {
-      history.replaceState(null, '', path);
+    const fullPath = BASE_PATH ? `/${BASE_PATH}${path}` : path;
+    if (window.location.pathname !== fullPath) {
+      history.replaceState(null, '', fullPath);
     }
   }, [section, mode, segment, classId, specId, raidGuideBossId, rankingsTab, raidDifficulty]);
 
