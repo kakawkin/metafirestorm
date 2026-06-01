@@ -1,6 +1,21 @@
 // СТАТИЧЕСКИЙ РЕЖИМ — читаем JSON из ./data/
 const API_BASE = '';
 
+// Автоопределение base path для GitHub Pages / локального тестирования
+const _GH_REPO = (function(){
+  const p = window.location.pathname;
+  if (window.location.hostname.indexOf('github.io') !== -1) {
+    const parts = p.split('/').filter(Boolean);
+    if (parts.length > 0) return '/' + parts[0];
+  }
+  return '';
+})();
+
+function _dataPath({mode, segment, classId, specId, suffix}){
+  const enc = (segment == null || segment == '0' || segment == 0) ? 'all' : segment;
+  return `${_GH_REPO}/data/${mode}/${classId}/${specId}/${enc}_${suffix}.json`;
+}
+
 const CLASSES = [
 
   { id:'deathknight', api:'DeathKnight', name:'Рыцарь смерти',      color:'#C41E3A', icon:'wow-icons/deathknight.jpg',
@@ -74,71 +89,36 @@ async function fetchJson(path){
 }
 
 async function apiPlayers({mode, segment, classId, specId}){
-  const cls = CLASSES.find(c=>c.id===classId);
-  const spec = cls && cls.specs.find(s=>s.id===specId);
-  const params = new URLSearchParams();
-  // Передаём короткие ID (classId, specId) — они маппятся на бэкенде в mappings.py
-  if(classId) params.set('class', classId);
-  if(specId) params.set('spec', specId);
-  // segment = encounter_id (номер босса/подземелья)
-  // segment='0' означает "Общее" (все боссы), не передаём encounter в этом случае
-  if(segment != null && segment != '0' && segment != 0) params.set('encounter', segment);
-  // Передаём mode (raid / mplus) для фильтрации content_type
-  if(mode) params.set('mode', mode);
-  // Если выбранный спек — хил, по умолчанию запрашиваем hps
-  if(spec && spec.role === 'heal') {
-    params.set('metric', 'hps');
-  }
-  // Берём топ-2000, чтобы захватить все логи (8 боссов × 200 логов = 1600).
-  // Агрегат по характеристикам будет более точным с большей выборкой.
-  // В таблице игроков всё равно показываем по 25 с пагинацией.
-  params.set('limit', '2000');
-  const res = await fetchJson('/api/players?' + params.toString());
+  const path = _dataPath({mode, segment, classId, specId, suffix: 'players'});
+  const res = await fetchJson(path);
   if(res.ok) return res;
-  // Fallback: generate mock
-  return { ok:true, data: window.MOCK_PLAYERS(mode, segment, classId, specId), mock:true };
+  // Fallback на мок
+  return { ok:true, data: window.MOCK_PLAYERS ? window.MOCK_PLAYERS(mode, segment, classId, specId) : [], mock:true };
 }
 
 async function apiAddons(){
-  const res = await fetchJson('/api/addons');
+  const res = await fetchJson('./addons.json');
   if(res.ok) return res;
-  return { ok:true, mock:true, data: window.MOCK_ADDONS };
+  return { ok:true, data: [] };
 }
+
 async function apiWeakauras(){
-  const res = await fetchJson('/api/weakauras');
+  const res = await fetchJson('./weakauras.json');
   if(res.ok) return res;
-  return { ok:true, mock:true, data: window.MOCK_WEAKAURAS };
+  return { ok:true, data: [] };
 }
 
 async function apiEmbellishments(){
-  const res = await fetchJson('/api/embellishments');
+  const res = await fetchJson('./embellishments.json');
   if(res.ok) return res;
-  return { ok:true, mock:true, data: [] }; // Fallback на пустой массив если API недоступен
+  return { ok:true, data: [] };
 }
 
 async function apiStats({mode, segment, classId, specId}){
-  const cls = CLASSES.find(c=>c.id===classId);
-  const spec = cls && cls.specs.find(s=>s.id===specId);
-  const params = new URLSearchParams();
-  
-  // Убираем дефисы для совместимости (localStorage может хранить старые значения типа "death-knight")
-  if(classId) params.set('class', classId.replace(/-/g, ''));
-  if(specId) params.set('spec', specId);
-  if(segment != null && segment != '0' && segment != 0) params.set('encounter', segment);
-  // Передаём mode (raid / mplus) для фильтрации content_type
-  if(mode) params.set('mode', mode);
-  
-  // Если выбранный спек — хил, запрашиваем hps
-  if(spec && spec.role === 'heal') {
-    params.set('metric', 'hps');
-  }
-  
-  const res = await fetchJson('/api/stats?' + params.toString());
+  const path = _dataPath({mode, segment, classId, specId, suffix: 'stats'});
+  const res = await fetchJson(path);
   if(res.ok) return res;
-  
-  // Fallback: если новый эндпоинт не работает, вернём null
-  // (фронт должен обработать это и вызвать старый apiPlayers)
-  return { ok:false, error: 'Stats API unavailable' };
+  return { ok:false, error: 'Stats unavailable' };
 }
 
 // Parse pipe-format slot string: "ITEM_HTML|PERM_ENCHANT_HTML|TEMP_ENCHANT_HTML"
@@ -217,145 +197,6 @@ function normalizePlayer(p){
     tier_slots: p.tier_slots || null,
   };
 }
-
-
-// Статические API — читаем JSON из папки data/
-async function fetchJson(path){
-  const url = API_BASE + path;
-  try {
-    const r = await fetch(url, { mode:'cors' });
-    if(!r.ok) throw new Error('HTTP '+r.status);
-    return { ok:true, data: await r.json() };
-  } catch(e){
-    return { ok:false, error: String(e) };
-  }
-}
-
-// Автоопределение base path для GitHub Pages / локального тестирования
-const _GH_REPO = (function(){
-  const p = window.location.pathname;
-  // Если hostname = *.github.io и path начинается с /repo-name/...
-  if (window.location.hostname.indexOf('github.io') !== -1) {
-    const parts = p.split('/').filter(Boolean);
-    if (parts.length > 0) return '/' + parts[0];
-  }
-  return '';
-})();
-
-function _dataPath({mode, segment, classId, specId, suffix}){
-  const enc = (segment == null || segment == '0' || segment == 0) ? 'all' : segment;
-  return `${_GH_REPO}/data/${mode}/${classId}/${specId}/${enc}_${suffix}.json`;
-}
-
-async function apiPlayers({mode, segment, classId, specId}){
-  const path = _dataPath({mode, segment, classId, specId, suffix: 'players'});
-  const res = await fetchJson(path);
-  if(res.ok) return res;
-  // Fallback на мок
-  return { ok:true, data: window.MOCK_PLAYERS ? window.MOCK_PLAYERS(mode, segment, classId, specId) : [], mock:true };
-}
-
-async function apiStats({mode, segment, classId, specId}){
-  const path = _dataPath({mode, segment, classId, specId, suffix: 'stats'});
-  const res = await fetchJson(path);
-  if(res.ok) return res;
-  return { ok:false, error: 'Stats unavailable' };
-}
-
-async function apiAddons(){
-  const res = await fetchJson('./addons.json');
-  if(res.ok) return res;
-  return { ok:true, data: [] };
-}
-
-async function apiWeakauras(){
-  const res = await fetchJson('./weakauras.json');
-  if(res.ok) return res;
-  return { ok:true, data: [] };
-}
-
-async function apiEmbellishments(){
-  const res = await fetchJson('./embellishments.json');
-  if(res.ok) return res;
-  return { ok:true, data: [] };
-}
-
-// Parse pipe-format slot string: "ITEM_HTML|PERM_ENCHANT_HTML|TEMP_ENCHANT_HTML"
-function parseSlotString(s){
-  if(!s || typeof s !== 'string') return null;
-  const parts = s.split('|');
-  const itemUrl = parts[0] || '';
-  const itemId = (itemUrl.match(/item=(\d+)/) || [])[1];
-  const itemName = (itemUrl.match(/>([^<]+)</) || [])[1] || itemUrl.split('/').pop() || '';
-  const quality = (itemUrl.match(/q(\d)/) || [])[1];
-  const qualityName = ['poor','common','uncommon','rare','epic','legendary','artifact'][+quality] || 'epic';
-  // Парсим data-icon='...' из HTML (добавлено для загрузки иконок)
-  const iconMatch = itemUrl.match(/data-icon='([^']+)'/);
-  const iconName = iconMatch ? iconMatch[1] : null;
-  // Извлекаем полный URL с бонусами и ilvl из href='...'
-  const hrefMatch = itemUrl.match(/href='([^']+)'/);
-  const fullItemUrl = hrefMatch ? hrefMatch[1] : null;
-  // [1] — постоянный энчант, [2] — временный (Howling Rune и т.п.)
-  const permEnchantUrl  = parts[1] || '';
-  const tempEnchantUrl  = parts[2] || '';
-  const permEnchantName = (permEnchantUrl.match(/>([^<]+)</) || [])[1] || (permEnchantUrl ? 'зачарование' : '');
-  const tempEnchantName = (tempEnchantUrl.match(/>([^<]+)</) || [])[1] || (tempEnchantUrl ? 'временное' : '');
-  return {
-    itemId: itemId ? +itemId : null,
-    itemName,
-    quality: qualityName,
-    iconName,  // имя файла иконки из Wowhead (например, "inv_112_raidtrinkets_...")
-    fullItemUrl,  // полный URL с bonus и ilvl для корректного tooltip
-    // legacy alias — старые места кода ещё могут читать enchantName
-    enchantName: permEnchantName,
-    permEnchantName,
-    tempEnchantName,
-    raw: s,
-  };
-}
-
-// Normalize a player record from API into UI shape
-function normalizePlayer(p){
-  const equipment = {};
-  for(const slot of ALL_SLOTS){
-    if(p[slot]) equipment[slot] = parseSlotString(p[slot]);
-  }
-  // Secondary stats: API may return per-player stats from item_stats; for now we
-  // expect optional precomputed `secondaries: {haste,crit,mastery,versatility}`
-  // (in % of secondaries total). If missing, fall back to deterministic mock.
-  let secondaries = p.secondaries;
-  if(!secondaries){
-    const seed = (p.name || '').split('').reduce((a,c)=>a+c.charCodeAt(0), p.id || 0);
-    secondaries = window.MOCK_SECONDARIES_FOR(seed, p.spec);
-  }
-  return {
-    id: p.id,
-    name: p.name,
-    server: p.server,
-    region: p.region,
-    cls: p.class || p.cls,
-    spec: p.spec,
-    metric: p.metric || 'dps',
-    score: p.score,
-    duration_s: p.duration_s,
-    avg_ilvl: Math.round(p.avg_ilvl || p.ranking_ilvl || 0),
-    log_url: p.log_url,
-    equipment,
-    secondaries,
-    // Сырые рейтинги из WCL (с баффами рейда — Ebon Might и пр.):
-    // {crit, haste, mastery, versatility, leech, speed, avoidance, armor, parry,
-    // dodge, block, strength, agility, intellect, stamina}
-    stats: p.stats || {},
-    // Чистые статы с экипировки (без баффов) — те же ключи что stats, но только
-    // вторички/третички/первички. null если item_stats ещё не заполнен.
-    gear_stats: p.gear_stats || null,
-    // 'strength' | 'agility' | 'intellect' — primary stat для пары class+spec.
-    primary_stat: p.primary_stat || null,
-    // tier set: строка со слотами, где есть ANY setID (head,shoulder,chest,hands,legs)
-    tier_slots: p.tier_slots || null,
-  };
-}
-
 
 window.FIRESTORM = {
   CLASSES, RAID_BOSSES, MPLUS_DUNGEONS, SLOT_LABELS, ALL_SLOTS,
