@@ -8,7 +8,7 @@
         // Saves the current path to sessionStorage and redirects to root,
         // where index.html reads it back via history.replaceState.
         var path = window.location.pathname;
-        var repo = '/firestorm-stats'; // Change this to your repo name!
+        var repo = '/metafirestorm'; // Change this to your repo name!
         // If deployed at root (username.github.io without repo), set repo = ''
         if (path.indexOf(repo) === 0) {
             path = path.substring(repo.length) || '/';
