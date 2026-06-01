@@ -17,6 +17,16 @@
                 var redirect = sessionStorage.getItem('gh-spa-redirect');
                 if (redirect) {
                     sessionStorage.removeItem('gh-spa-redirect');
+                    // На GitHub Pages добавляем repo name к пути
+                    if (window.location.hostname.indexOf('github.io') !== -1) {
+                        var parts = window.location.pathname.split('/').filter(Boolean);
+                        if (parts.length > 0) {
+                            var base = '/' + parts[0];
+                            if (redirect.indexOf(base) !== 0 && redirect.indexOf('/') === 0) {
+                                redirect = base + redirect;
+                            }
+                        }
+                    }
                     history.replaceState(null, null, redirect);
                 }
             })();
