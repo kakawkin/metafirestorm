@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8" />
+    <title>Firestorm — Статистика и рейтинги</title>
+    <script>
+        // SPA redirect trick for GitHub Pages / static hosting.
+        // Saves the current path to sessionStorage and redirects to root,
+        // where index.html reads it back via history.replaceState.
+        var path = window.location.pathname;
+        var repo = '/firestorm-stats'; // Change this to your repo name!
+        // If deployed at root (username.github.io without repo), set repo = ''
+        if (path.indexOf(repo) === 0) {
+            path = path.substring(repo.length) || '/';
+        }
+        sessionStorage.setItem('gh-spa-redirect', path + window.location.search + window.location.hash);
+        window.location.replace(repo + '/');
+    </script>
+</head>
+<body>
+    <p>Перенаправление...</p>
+</body>
+</html>

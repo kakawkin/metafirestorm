@@ -10,8 +10,17 @@
             href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap"
             rel="stylesheet"
         />
-        <base href="/" />
         <link rel="stylesheet" href="styles.css?v=56" />
+        <!-- GitHub Pages SPA redirect: восстанавливаем pretty URL после 404 -->
+        <script>
+            (function() {
+                var redirect = sessionStorage.getItem('gh-spa-redirect');
+                if (redirect) {
+                    sessionStorage.removeItem('gh-spa-redirect');
+                    history.replaceState(null, null, redirect);
+                }
+            })();
+        </script>
         <script>
             // Set this to point at the FastAPI server. Default localhost:8000.
             window.FIRESTORM_API_BASE = "http://localhost:8000";
