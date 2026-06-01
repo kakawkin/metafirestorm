@@ -231,9 +231,20 @@ async function fetchJson(path){
   }
 }
 
+// Автоопределение base path для GitHub Pages / локального тестирования
+const _GH_REPO = (function(){
+  const p = window.location.pathname;
+  // Если hostname = *.github.io и path начинается с /repo-name/...
+  if (window.location.hostname.indexOf('github.io') !== -1) {
+    const parts = p.split('/').filter(Boolean);
+    if (parts.length > 0) return '/' + parts[0];
+  }
+  return '';
+})();
+
 function _dataPath({mode, segment, classId, specId, suffix}){
   const enc = (segment == null || segment == '0' || segment == 0) ? 'all' : segment;
-  return `./data/${mode}/${classId}/${specId}/${enc}_${suffix}.json`;
+  return `${_GH_REPO}/data/${mode}/${classId}/${specId}/${enc}_${suffix}.json`;
 }
 
 async function apiPlayers({mode, segment, classId, specId}){
