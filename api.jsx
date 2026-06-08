@@ -1,3 +1,6 @@
+// API client — talks to FastAPI. Falls back to mock data when API is unreachable.
+const API_BASE = window.FIRESTORM_API_BASE || 'http://localhost:8000';
+
 // Автоопределение base path для GitHub Pages / локального тестирования
 const _GH_REPO = (function(){
   const p = window.location.pathname;
@@ -8,8 +11,10 @@ const _GH_REPO = (function(){
   return '';
 })();
 
-// API client — talks to FastAPI. Falls back to mock data when API is unreachable.
-const API_BASE = window.FIRESTORM_API_BASE || 'http://localhost:8000';
+function _dataPath({mode, segment, classId, specId, suffix}){
+  const enc = (segment == null || segment == '0' || segment == 0) ? 'all' : segment;
+  return `${_GH_REPO}/data/${mode}/${classId}/${specId}/${enc}_${suffix}.json`;
+}
 
 const CLASSES = [
   { id:'deathknight', api:'DeathKnight', name:'Рыцарь смерти',      color:'#C41E3A', icon:_GH_REPO + '/wow-icons/deathknight.jpg',
@@ -106,45 +111,43 @@ async function apiPlayers({mode, segment, classId, specId, limit=2000}){
 }
 
 async function apiAddons(){
-  const res = await fetchJson('/api/addons');
-  if(res.ok) return res;
-  return { ok:true, mock:true, data: window.MOCK_ADDONS };
+  try {
+    const r = await fetch(`${_GH_REPO}/addons.json`);
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return { ok:true, data: await r.json() };
+  } catch(e){
+    return { ok:true, mock:true, data: window.MOCK_ADDONS };
+  }
 }
 async function apiWeakauras(){
-  const res = await fetchJson('/api/weakauras');
-  if(res.ok) return res;
-  return { ok:true, mock:true, data: window.MOCK_WEAKAURAS };
+  try {
+    const r = await fetch(`${_GH_REPO}/weakauras.json`);
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return { ok:true, data: await r.json() };
+  } catch(e){
+    return { ok:true, mock:true, data: window.MOCK_WEAKAURAS };
+  }
 }
 
 async function apiEmbellishments(){
-  const res = await fetchJson('/api/embellishments');
-  if(res.ok) return res;
-  return { ok:true, mock:true, data: [] }; // Fallback на пустой массив если API недоступен
+  try {
+    const r = await fetch(`${_GH_REPO}/embellishments.json`);
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return { ok:true, data: await r.json() };
+  } catch(e){
+    return { ok:true, mock:true, data: [] }; // Fallback на пустой массив если API недоступен
+  }
 }
 
 async function apiStats({mode, segment, classId, specId}){
-  const cls = CLASSES.find(c=>c.id===classId);
-  const spec = cls && cls.specs.find(s=>s.id===specId);
-  const params = new URLSearchParams();
-  
-  // Убираем дефисы для совместимости (localStorage может хранить старые значения типа "death-knight")
-  if(classId) params.set('class', classId.replace(/-/g, ''));
-  if(specId) params.set('spec', specId);
-  if(segment != null && segment != '0' && segment != 0) params.set('encounter', segment);
-  // Передаём mode (raid / mplus) для фильтрации content_type
-  if(mode) params.set('mode', mode);
-  
-  // Если выбранный спек — хил, запрашиваем hps
-  if(spec && spec.role === 'heal') {
-    params.set('metric', 'hps');
+  const path = _dataPath({mode, segment, classId, specId, suffix: 'stats'});
+  try {
+    const r = await fetch(path);
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return { ok:true, data: await r.json() };
+  } catch(e){
+    return { ok:false, error: String(e) };
   }
-  
-  const res = await fetchJson('/api/stats?' + params.toString());
-  if(res.ok) return res;
-  
-  // Fallback: если новый эндпоинт не работает, вернём null
-  // (фронт должен обработать это и вызвать старый apiPlayers)
-  return { ok:false, error: 'Stats API unavailable' };
 }
 
 // Parse pipe-format slot string: "ITEM_HTML|PERM_ENCHANT_HTML|TEMP_ENCHANT_HTML"
