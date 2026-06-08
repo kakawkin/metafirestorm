@@ -11,7 +11,6 @@
             href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap"
             rel="stylesheet"
         />
-        <base href=".//" />
         <link rel="stylesheet" href="./styles.css?v=56" />
         <script>
             // Set this to point at the FastAPI server. Default localhost:8000.
@@ -60,14 +59,26 @@
     <body>
         <div id="root"></div>
 
-        <!-- React PRODUCTION (не development) -->
-        <script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin></script>
-        <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin></script>
+        <!-- React PRODUCTION — jsdelivr (более стабилен в РФ) -->
+        <script src="https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js" crossorigin></script>
+        <script src="https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin></script>
         <!-- Markdown parser -->
         <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
 
+        <!-- Диагностика: показываем ошибки JS прямо на странице -->
+        <script>
+            window.onerror = function(msg, url, line, col, err) {
+                var el = document.getElementById('root');
+                if (el) el.innerHTML = '<pre style="color:#ff5555;background:#1a0505;padding:20px;font-family:monospace;white-space:pre-wrap;word-break:break-all;"><b>JS Error:</b> ' + msg + ' at ' + line + ':' + col + '\n' + (err && err.stack) + '</pre>';
+            };
+            window.onunhandledrejection = function(e) {
+                var el = document.getElementById('root');
+                if (el) el.innerHTML = '<pre style="color:#ff5555;background:#1a0505;padding:20px;font-family:monospace;white-space:pre-wrap;word-break:break-all;"><b>Unhandled Promise Rejection:</b> ' + e.reason + '</pre>';
+            };
+        </script>
+
         <!-- Весь JS собран заранее -->
-        <script src="./bundle.js?v=2"></script>
+        <script src="./bundle.js?v=3"></script>
 
         <!-- Guide Tabs Switcher -->
         <script>
