@@ -235,8 +235,9 @@ function getTabName(attrs) {
 
 function buildGuideParts(markdown, guideBaseDir = "") {
   const parts = [];
+  const cleanMd = markdown.replace(/^\uFEFF/, "").replace(/\r\n/g, "\n").replace(/\r/g, "\n");
   // HTML-теги + markdown-табы ::tabs / ::tab Name / ::/tabs
-  const tokenRe = /<(\/?)(talent-calc|talent|tabs|tab)\b([^>]*)>|^::tabs$|^::tab\s+(.*?)$|^::\/tabs$/gim;
+  const tokenRe = /<(\/?)(talent-calc|talent|tabs|tab)\b([^>]*)>|^::tabs\s*$|^::tab\s+(.*?)$|^::\/tabs\s*$/gim;
   let lastIndex = 0;
 
   function pushHtml(text) {
@@ -246,16 +247,18 @@ function buildGuideParts(markdown, guideBaseDir = "") {
   let match;
   let currentTabsGroup = null;
 
-  while ((match = tokenRe.exec(markdown)) !== null) {
+  while ((match = tokenRe.exec(cleanMd)) !== null) {
     const matchIndex = match.index;
     const matchText = match[0];
     const isTabsOpen = matchText.trim() === "::tabs";
     const isTab = match[4] !== undefined; // captured by (.*?)
     const isTabsClose = matchText.trim() === "::/tabs";
-    let textBefore = markdown.slice(lastIndex, matchIndex);
+    const tagName = match[2]?.toLowerCase();
+    const isTalentTag = tagName === 'talent' || tagName === 'talent-calc';
+    let textBefore = cleanMd.slice(lastIndex, matchIndex);
 
-    // Если внутри таб-группы и встретили НЕ-таб токен — закрываем группу
-    if (currentTabsGroup && !isTabsOpen && !isTab && !isTabsClose) {
+    // Если внутри таб-группы и встретили НЕ-таб токен (и не talent) — закрываем группу
+    if (currentTabsGroup && !isTabsOpen && !isTab && !isTabsClose && !isTalentTag) {
       if (currentTabsGroup.tabs.length > 0) {
         currentTabsGroup.tabs[currentTabsGroup.tabs.length - 1].content += textBefore;
       }
@@ -304,7 +307,6 @@ function buildGuideParts(markdown, guideBaseDir = "") {
 
     // HTML-теги (talent, tabs, tab)
     const isClosing = match[1] === "/";
-    const tagName = match[2]?.toLowerCase();
     const attrs = match[3] || "";
 
     if (currentTabsGroup) {
@@ -361,7 +363,7 @@ function buildGuideParts(markdown, guideBaseDir = "") {
     }
   }
 
-  const remainingText = markdown.slice(lastIndex);
+  const remainingText = cleanMd.slice(lastIndex);
   if (currentTabsGroup) {
     if (currentTabsGroup.tabs.length > 0) {
       currentTabsGroup.tabs[currentTabsGroup.tabs.length - 1].content += remainingText;

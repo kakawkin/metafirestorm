@@ -1,5 +1,11 @@
 {
+  "name": "firestorm-static",
+  "version": "1.0.0",
+  "description": "Static site bundle for Firestorm Stats",
+  "scripts": {
+    "build": "node build.js"
+  },
   "devDependencies": {
-    "esbuild": "^0.28.0"
+    "esbuild": "^0.21.5"
   }
 }

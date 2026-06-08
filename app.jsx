@@ -154,6 +154,10 @@ function App(){
   const [addonsMock, setAddonsMock] = useState(false);
   const [aurasMock, setAurasMock]   = useState(false);
 
+  // fetch individual players for the leaderboard table
+  const [players, setPlayers] = useState([]);
+  const [playersLoading, setPlayersLoading] = useState(false);
+
   // when mode flips, reset segment to first of that mode's list
   // ВАЖНО: при первой загрузке этот эффект не должен затирать восстановленный segment.
   // Используем ref-флаг "первого рендера".
@@ -222,6 +226,24 @@ function App(){
     return ()=>{ cancel = true; };
   }, [section, mode, segment, classId, specId]);
 
+  // fetch individual players (top-200 for the leaderboard)
+  useEffect(()=>{
+    if(section !== 'rankings' || rankingsTab !== 'stats') return;
+    let cancel = false;
+    setPlayersLoading(true);
+    apiPlayers({mode, segment, classId, specId, limit: 200}).then(res=>{
+      if(cancel) return;
+      if(res.ok){
+        const normalized = (res.data || []).map(normalizePlayer);
+        setPlayers(normalized);
+      } else {
+        setPlayers([]);
+      }
+      setPlayersLoading(false);
+    });
+    return ()=>{ cancel = true; };
+  }, [section, mode, segment, classId, specId, rankingsTab]);
+
   // fetch addons / auras once
   useEffect(()=>{
     apiAddons().then(res=>{ setAddons(res.data); setAddonsMock(!!res.mock); });
@@ -285,7 +307,7 @@ function App(){
                 {loading ? (
                   <div className="fs-loading">Загрузка статистики…</div>
                 ) : (
-                  <window.STATS.StatsBlock stats={stats} classColor={cls.color}/>
+                  <window.STATS.StatsBlock stats={stats} players={players} playersLoading={playersLoading} classColor={cls.color}/>
                 )}
               </>
             )}

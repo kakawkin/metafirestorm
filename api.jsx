@@ -1,6 +1,3 @@
-// СТАТИЧЕСКИЙ РЕЖИМ — читаем JSON из ./data/
-const API_BASE = '';
-
 // Автоопределение base path для GitHub Pages / локального тестирования
 const _GH_REPO = (function(){
   const p = window.location.pathname;
@@ -11,13 +8,10 @@ const _GH_REPO = (function(){
   return '';
 })();
 
-function _dataPath({mode, segment, classId, specId, suffix}){
-  const enc = (segment == null || segment == '0' || segment == 0) ? 'all' : segment;
-  return `${_GH_REPO}/data/${mode}/${classId}/${specId}/${enc}_${suffix}.json`;
-}
+// API client — talks to FastAPI. Falls back to mock data when API is unreachable.
+const API_BASE = window.FIRESTORM_API_BASE || 'http://localhost:8000';
 
 const CLASSES = [
-
   { id:'deathknight', api:'DeathKnight', name:'Рыцарь смерти',      color:'#C41E3A', icon:_GH_REPO + '/wow-icons/deathknight.jpg',
     specs:[{id:'blood',api:'Blood',name:'Кровь',role:'tank',icon:_GH_REPO + '/wow-icons/specs/spell_deathknight_bloodpresence.gif'},{id:'frost',api:'Frost',name:'Лёд',role:'dps',icon:_GH_REPO + '/wow-icons/specs/spell_deathknight_frostpresence.gif'},{id:'unholy',api:'Unholy',name:'Нечестивость',role:'dps',icon:_GH_REPO + '/wow-icons/specs/spell_deathknight_unholypresence.gif'}] },
   { id:'demonhunter', api:'DemonHunter', name:'Охотник на демонов', color:'#A330C9', icon:_GH_REPO + '/wow-icons/demonhunter.jpg',
@@ -88,37 +82,69 @@ async function fetchJson(path){
   }
 }
 
-async function apiPlayers({mode, segment, classId, specId}){
-  const path = _dataPath({mode, segment, classId, specId, suffix: 'players'});
-  const res = await fetchJson(path);
+async function apiPlayers({mode, segment, classId, specId, limit=2000}){
+  const cls = CLASSES.find(c=>c.id===classId);
+  const spec = cls && cls.specs.find(s=>s.id===specId);
+  const params = new URLSearchParams();
+  // Передаём короткие ID (classId, specId) — они маппятся на бэкенде в mappings.py
+  if(classId) params.set('class', classId);
+  if(specId) params.set('spec', specId);
+  // segment = encounter_id (номер босса/подземелья)
+  // segment='0' означает "Общее" (все боссы), не передаём encounter в этом случае
+  if(segment != null && segment != '0' && segment != 0) params.set('encounter', segment);
+  // Передаём mode (raid / mplus) для фильтрации content_type
+  if(mode) params.set('mode', mode);
+  // Если выбранный спек — хил, по умолчанию запрашиваем hps
+  if(spec && spec.role === 'heal') {
+    params.set('metric', 'hps');
+  }
+  params.set('limit', String(limit));
+  const res = await fetchJson('/api/players?' + params.toString());
   if(res.ok) return res;
-  // Fallback на мок
-  return { ok:true, data: window.MOCK_PLAYERS ? window.MOCK_PLAYERS(mode, segment, classId, specId) : [], mock:true };
+  // Fallback: generate mock
+  return { ok:true, data: window.MOCK_PLAYERS(mode, segment, classId, specId), mock:true };
 }
 
 async function apiAddons(){
-  const res = await fetchJson('./addons.json');
+  const res = await fetchJson('/api/addons');
   if(res.ok) return res;
-  return { ok:true, data: [] };
+  return { ok:true, mock:true, data: window.MOCK_ADDONS };
 }
-
 async function apiWeakauras(){
-  const res = await fetchJson('./weakauras.json');
+  const res = await fetchJson('/api/weakauras');
   if(res.ok) return res;
-  return { ok:true, data: [] };
+  return { ok:true, mock:true, data: window.MOCK_WEAKAURAS };
 }
 
 async function apiEmbellishments(){
-  const res = await fetchJson('./embellishments.json');
+  const res = await fetchJson('/api/embellishments');
   if(res.ok) return res;
-  return { ok:true, data: [] };
+  return { ok:true, mock:true, data: [] }; // Fallback на пустой массив если API недоступен
 }
 
 async function apiStats({mode, segment, classId, specId}){
-  const path = _dataPath({mode, segment, classId, specId, suffix: 'stats'});
-  const res = await fetchJson(path);
+  const cls = CLASSES.find(c=>c.id===classId);
+  const spec = cls && cls.specs.find(s=>s.id===specId);
+  const params = new URLSearchParams();
+  
+  // Убираем дефисы для совместимости (localStorage может хранить старые значения типа "death-knight")
+  if(classId) params.set('class', classId.replace(/-/g, ''));
+  if(specId) params.set('spec', specId);
+  if(segment != null && segment != '0' && segment != 0) params.set('encounter', segment);
+  // Передаём mode (raid / mplus) для фильтрации content_type
+  if(mode) params.set('mode', mode);
+  
+  // Если выбранный спек — хил, запрашиваем hps
+  if(spec && spec.role === 'heal') {
+    params.set('metric', 'hps');
+  }
+  
+  const res = await fetchJson('/api/stats?' + params.toString());
   if(res.ok) return res;
-  return { ok:false, error: 'Stats unavailable' };
+  
+  // Fallback: если новый эндпоинт не работает, вернём null
+  // (фронт должен обработать это и вызвать старый apiPlayers)
+  return { ok:false, error: 'Stats API unavailable' };
 }
 
 // Parse pipe-format slot string: "ITEM_HTML|PERM_ENCHANT_HTML|TEMP_ENCHANT_HTML"

@@ -1175,6 +1175,12 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
   border-radius: 8px;
 }
 
+/* Сброс глобальных стилей .guide-content для талентов */
+.guide-content .tc-static img {
+  margin: 0 !important;
+  display: block;
+}
+
 .guide-content a {
   color: #8fd5ff;
   text-decoration: none;
@@ -1182,6 +1188,102 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
 
 .guide-content a:hover {
   color: #c8ebff;
+}
+
+/* ─── Wowhead-style Strengths/Weaknesses table ─────────── */
+.guide-sw-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  font-size: 14px;
+  line-height: 1.6;
+  border: 1px solid #3a3020;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.guide-sw-table th {
+  padding: 12px 16px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 15px;
+  background: none;
+  border-bottom: 1px solid #3a3020;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.guide-sw-table .sw-strengths-header {
+  color: #7ce37c;
+  border-right: 1px solid #3a3020;
+}
+
+.guide-sw-table .sw-weaknesses-header {
+  color: #e37c7c;
+}
+
+.guide-sw-table td {
+  padding: 14px 16px;
+  vertical-align: top;
+  width: 50%;
+}
+
+.guide-sw-table .sw-strengths-cell {
+  background: none;
+  border-right: 1px solid #3a3020;
+}
+
+.guide-sw-table .sw-weaknesses-cell {
+  background: none;
+}
+
+.guide-sw-table ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.guide-sw-table li {
+  position: relative;
+  padding-left: 22px;
+  margin-bottom: 10px;
+}
+
+.guide-sw-table li:last-child {
+  margin-bottom: 0;
+}
+
+.guide-sw-table .sw-strengths-cell li::before {
+  content: "+";
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: #7ce37c;
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+.guide-sw-table .sw-weaknesses-cell li::before {
+  content: "−";
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: #e37c7c;
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+.guide-sw-table a {
+  color: #8fd5ff;
+  text-decoration: none;
+  border-bottom: 1px dotted #8fd5ff44;
+}
+
+.guide-sw-table a:hover {
+  color: #c8ebff;
+  border-bottom-color: #8fd5ff;
 }
 
 @media (max-width: 900px) {

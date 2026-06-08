@@ -1,4 +1,4 @@
-// Players list with expandable equipment drawer (in-game layout)
+﻿// Players list with expandable equipment drawer (in-game layout)
 function PlayerRow({player, rank, classColor, expanded, onToggle}){
   const { ItemIcon, formatScore } = window.UI;
   const dur = player.duration_s;
@@ -58,20 +58,40 @@ function PlayerRow({player, rank, classColor, expanded, onToggle}){
 }
 
 function PlayerStats({player}){
-  const sec = player.secondaries || {};
+  const st = player.stats;
+  if(!st) return null;
+  const fmt = v => v != null ? Math.round(v).toLocaleString('ru-RU') : null;
   const parts = [];
-  if(sec.crit        != null) parts.push(`Крит: ${sec.crit}%`);
-  if(sec.haste       != null) parts.push(`Скорость: ${sec.haste}%`);
-  if(sec.mastery     != null) parts.push(`Искусность: ${sec.mastery}%`);
-  if(sec.versatility != null) parts.push(`Универсальность: ${sec.versatility}%`);
+  if(st.crit        != null) parts.push(`Крит: ${fmt(st.crit)}`);
+  if(st.haste       != null) parts.push(`Скорость: ${fmt(st.haste)}`);
+  if(st.mastery     != null) parts.push(`Искусность: ${fmt(st.mastery)}`);
+  if(st.versatility != null) parts.push(`Универсальность: ${fmt(st.versatility)}`);
   if(!parts.length) return null;
-  return <div className="pl-stats-line">{parts.join(' · ')}</div>;
+  const total = (st.crit||0) + (st.haste||0) + (st.mastery||0) + (st.versatility||0);
+  return (
+    <div className="pl-stats-line" style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+      <span>{parts.join(' · ')}</span>
+      <span style={{color:'rgba(255,255,255,0.35)', fontSize:'0.85em', marginLeft:12}}>Σ {Math.round(total).toLocaleString('ru-RU')}</span>
+    </div>
+  );
 }
 
 function EquipSlot({slot, item, align='left'}){
   const { ItemIcon, ItemName } = window.UI;
   const { SLOT_LABELS } = window.FIRESTORM;
   
+  // Маппинг: enchant effect ID -> real spell ID для WowHead
+  // (при temporary enchant в БД хранится enchant effect ID, а не spell ID)
+  const TEMP_ENCHANT_SPELL_MAP = {
+    // Alchemy oils (TWW)
+    '7495': '451874',  // Алгарийское масло маны
+    '7496': '451882',  // Масло пропитывающего яда
+    // Blacksmithing imbues (TWW)
+    '7543': '458932',  // Заточенное когтесталью оружие (lesser)
+    '7545': '458934',  // Заточенное когтесталью оружие
+    '7550': '458936',  // Утяжеленное когтесталью оружие
+  };
+
   // Извлекаем spell ID энчантов из raw (формат: ITEM|PERM_ENCHANT|TEMP_ENCHANT)
   let permSpellId = null;
   let tempSpellId = null;
@@ -82,7 +102,9 @@ function EquipSlot({slot, item, align='left'}){
     const permMatch = permUrl.match(/spell=(\d+)/);
     const tempMatch = tempUrl.match(/spell=(\d+)/);
     permSpellId = permMatch ? permMatch[1] : null;
-    tempSpellId = tempMatch ? tempMatch[1] : null;
+    // Для временных энчантов преобразуем enchant effect ID в реальный spell ID
+    const tempEffectId = tempMatch ? tempMatch[1] : null;
+    tempSpellId = tempEffectId ? (TEMP_ENCHANT_SPELL_MAP[tempEffectId] || null) : null;
   }
   
   return (
@@ -128,7 +150,7 @@ function EquipSlot({slot, item, align='left'}){
 
 function PlayersList({players, classColor}){
   const [open, setOpen] = React.useState(null);
-  const [limit, setLimit] = React.useState(25);
+  const [limit, setLimit] = React.useState(100);
   const visible = players.slice(0, limit);
   return (
     <div className="players-list">
@@ -154,3 +176,4 @@ function PlayersList({players, classColor}){
 }
 
 window.PLAYERS = { PlayersList };
+

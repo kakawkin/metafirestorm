@@ -1,19 +1,53 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="ru">
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>Firestorm - Статистика и рейтинги</title>
+        <base href="/" />
+        <title>Firestorm — Статистика и рейтинги</title>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
         <link
             href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap"
             rel="stylesheet"
         />
-        <base href="/" />
+        <base href=".//" />
         <link rel="stylesheet" href="./styles.css?v=56" />
         <script>
+            // Set this to point at the FastAPI server. Default localhost:8000.
+            window.FIRESTORM_API_BASE = "http://localhost:8000";
+
+            // Discord Webhook URL для обратной связи
+            // ВАЖНО: Замените на свой Discord webhook URL!
+            window.DISCORD_WEBHOOK_URL =
+                "https://discord.com/api/webhooks/1507007782665195720/o2eHhBwprwv_5nYNj-Xg2JiZ5EtfjqaX9SXMKGJnPDQPJYhDm5xoEJMJsYgy2nNIHneS";
+        </script>
+        <!-- Wowhead tooltips и иконки предметов -->
+        <script>
+            const whTooltips = {
+                colorLinks: true, // цвет ссылок по качеству (epic/rare/legendary)
+                iconizeLinks: true, // заменяет placeholder на настоящие иконки
+                renameLinks: true, // подставляет правильные названия предметов
+            };
+        </script>
+        <script src="https://wow.zamimg.com/widgets/power.js"></script>
+		<!-- Yandex.Metrika counter -->
+		<script type="text/javascript">
+			(function(m,e,t,r,i,k,a){
+				m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+				m[i].l=1*new Date();
+				for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+				k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
+			})(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=109680048', 'ym');
+
+			ym(109680048, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLayer", referrer: document.referrer, url: location.href, accurateTrackBounce:true, trackLinks:true});
+		</script>
+		<noscript><div><img src="https://mc.yandex.ru/watch/109680048" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+		<!-- /Yandex.Metrika counter -->
+	    <!-- GitHub Pages SPA redirect: только для github.io -->
+        <script>
             (function() {
+                // На Netlify и других хостингах с SPA поддержкой sessionStorage НЕ нужен
                 if (window.location.hostname.indexOf('github.io') === -1) return;
                 var redirect = sessionStorage.getItem('gh-spa-redirect');
                 if (redirect) {
@@ -22,44 +56,61 @@
                 }
             })();
         </script>
-        <script>
-            window.DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1507007782665195720/o2eHhBwprwv_5nYNj-Xg2JiZ5EtfjqaX9SXMKGJnPDQPJYhDm5xoEJMJsYgy2nNIHneS";
-        </script>
-        <script>
-            const whTooltips = {
-                colorLinks: true,
-                iconizeLinks: true,
-                renameLinks: true,
-            };
-        </script>
-        <script src="https://wow.zamimg.com/widgets/power.js"></script>
-    </head>
+	</head>
     <body>
         <div id="root"></div>
 
-        <!-- React production builds (значительно меньше чем development) -->
+        <!-- React PRODUCTION (не development) -->
         <script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin></script>
         <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin></script>
         <!-- Markdown parser -->
         <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
-        <!-- Весь JS собран заранее, Babel в браузере больше не нужен -->
+
+        <!-- Весь JS собран заранее -->
         <script src="./bundle.js?v=1"></script>
 
+        <!-- Guide Tabs Switcher -->
         <script>
+            // Функция для переключения табов в гайдах
             function switchGuideTab(tabGroup, tabId) {
-                const buttons = document.querySelectorAll(`[data-tab-group="${tabGroup}"]`);
-                const contents = document.querySelectorAll(`[data-tab-content="${tabGroup}"]`);
-                buttons.forEach((btn) => btn.classList.remove('active'));
-                contents.forEach((content) => content.classList.remove('active'));
-                const activeButton = document.querySelector(`[data-tab-group="${tabGroup}"][data-tab-id="${tabId}"]`);
-                const activeContent = document.querySelector(`[data-tab-content="${tabGroup}"][data-tab-id="${tabId}"]`);
-                if (activeButton) activeButton.classList.add('active');
-                if (activeContent) activeContent.classList.add('active');
+                // Находим все кнопки и контент в группе
+                const buttons = document.querySelectorAll(
+                    `[data-tab-group="${tabGroup}"]`,
+                );
+                const contents = document.querySelectorAll(
+                    `[data-tab-content="${tabGroup}"]`,
+                );
+
+                // Убираем active у всех
+                buttons.forEach((btn) => btn.classList.remove("active"));
+                contents.forEach((content) =>
+                    content.classList.remove("active"),
+                );
+
+                // Добавляем active к выбранным
+                const activeButton = document.querySelector(
+                    `[data-tab-group="${tabGroup}"][data-tab-id="${tabId}"]`,
+                );
+                const activeContent = document.querySelector(
+                    `[data-tab-content="${tabGroup}"][data-tab-id="${tabId}"]`,
+                );
+
+                if (activeButton) activeButton.classList.add("active");
+                if (activeContent) activeContent.classList.add("active");
             }
-            document.addEventListener('DOMContentLoaded', function () {
-                document.addEventListener('click', function (e) {
-                    if (e.target.classList.contains('guide-tab-btn') || e.target.classList.contains('guide-pill-btn')) {
-                        setTimeout(() => { if (window.$WowheadPower) window.$WowheadPower.refreshLinks(); }, 100);
+
+            // После загрузки Wowhead tooltips, пере-инициализируем их для новых табов
+            document.addEventListener("DOMContentLoaded", function () {
+                // Слушаем клики на табах для обновления Wowhead tooltips
+                document.addEventListener("click", function (e) {
+                    if (
+                        e.target.classList.contains("guide-tab-btn") ||
+                        e.target.classList.contains("guide-pill-btn")
+                    ) {
+                        setTimeout(() => {
+                            if (window.$WowheadPower)
+                                window.$WowheadPower.refreshLinks();
+                        }, 100);
                     }
                 });
             });

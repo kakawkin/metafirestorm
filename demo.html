@@ -262,7 +262,8 @@
 
                             const fromA = getNodeRank(node, build) > 0;
                             const toA = getNodeRank(target, build) > 0;
-                            const color = fromA && toA ? "#c9b27a" : "#3a3529";
+                            const toAvail = isNodeAvailable(target, build, nodeMap);
+                            const color = fromA && toA ? "#c9b27a" : fromA && toAvail ? "#5a5549" : "#3a3529";
                             const sw = fromA && toA ? 1.25 : 1;
 
                             result.push({
@@ -533,7 +534,7 @@
                                                 : hov && !node.freeNode && avail
                                                   ? "brightness(1.18)"
                                                   : isEmpty
-                                                    ? "brightness(1)"
+                                                    ? "grayscale(100%) brightness(0.65)"
                                                     : "brightness(1) saturate(1)",
                                         transition: "filter 0.2s",
                                     }}
@@ -543,7 +544,7 @@
                                 />
                             )}
                         </button>
-                        {maxRank > 1 && (
+                        {maxRank > 1 && rank > 0 && (
                             <div
                                 style={{
                                     position: "absolute",
@@ -1423,7 +1424,8 @@
                                 const pts = `${tipX},${tipY} ${bx + nx * ARROW_W},${by + ny * ARROW_W} ${bx - nx * ARROW_W},${by - ny * ARROW_W}`;
                                 const fromA = getNodeRank(node, build) > 0,
                                     toA = getNodeRank(target, build) > 0;
-                                const col = fromA && toA ? "#c9b27a" : "#3a3529";
+                                const toAvail = isNodeAvailable(target, build, nodeMap);
+                                const col = fromA && toA ? "#c9b27a" : fromA && toAvail ? "#5a5549" : "#3a3529";
                                 const sw = fromA && toA ? 1.25 : 1;
                                 svgLines += `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="${col}" stroke-width="${sw}" stroke-linecap="round"/>`;
                                 svgLines += `<polygon points="${pts}" fill="${col}"/>`;
@@ -1466,7 +1468,7 @@
                             const filter = isEmpty && !avail
                                 ? "grayscale(100%) brightness(0.34)"
                                 : isEmpty
-                                  ? "brightness(1)"
+                                  ? "grayscale(100%) brightness(0.65)"
                                   : "brightness(1) saturate(1)";
                             const border = isFull
                                 ? "2px solid #dec57f"
@@ -1476,16 +1478,16 @@
                             const glow = "";
                             nodesHtml += `<div title="${entry.name}" style="position:absolute;left:${x}px;top:${y}px;width:${CELL_PX}px;height:${CELL_PX}px;">`;
                             nodesHtml += `<img src="${icon}" alt="${entry.name}" style="width:100%;height:100%;display:block;border-radius:${radius};border:${border};${glow}filter:${filter};box-sizing:border-box;"/>`;
-                            if (maxRank > 1) {
+                            if (maxRank > 1 && rank > 0) {
                                 nodesHtml += `<div style="position:absolute;right:-2px;bottom:-2px;font-size:9px;font-weight:700;color:#fff;background:#000;border-radius:2px;padding:0 3px;font-family:'Exo 2',sans-serif;white-space:nowrap;text-shadow:1px 1px 0 #242424,0 1px 0 #242424,-1px 1px 0 #242424,-1px 0 0 #242424,-1px -1px 0 #242424,0 -1px 0 #242424,1px -1px 0 #242424,1px 0 0 #242424;line-height:1;z-index:2;">${rank}/${maxRank}</div>`;
                             }
                             nodesHtml += `</div>`;
                         }
 
                         return `
-<div style="flex:0 0 auto;padding:0 16px 16px;${isLast ? "" : `border-right:1px solid ${color}18;`} ">
-  <div style="color:${color};font-size:12px;font-weight:700;font-family:'Exo 2',sans-serif;padding:6px 12px 10px;margin-bottom:10px;background:linear-gradient(90deg,${color}18,transparent);border-bottom:1px solid ${color}22;">${title}</div>
-  <div style="position:relative;width:${W}px;height:${H}px;">
+<div style="flex:0 0 auto;padding:0 12px 12px;${isLast ? "" : `border-right:1px solid ${color}18;`} ">
+  <div style="color:${color};font-size:12px;font-weight:700;font-family:'Exo 2',sans-serif;padding:6px 12px 10px;margin-bottom:10px;background:linear-gradient(90deg,${color}18,transparent);border-bottom:1px solid ${color}22;text-align:center;">${title}</div>
+  <div style="position:relative;width:${W}px;height:${H}px;margin:0 auto;">
     <svg style="position:absolute;top:0;left:0;width:100%;height:100%;overflow:visible;pointer-events:none;">${svgLines}</svg>
     ${nodesHtml}
   </div>
@@ -1539,8 +1541,8 @@
                         )
                         .join("");
 
-                    const fullHtml = `<div class="tc-static" style="display:inline-block;max-width:100%;overflow-x:auto;background:rgb(38, 38, 38);border:1px solid ${color}22;border-radius:8px;padding:8px 0 16px;margin:16px 0;vertical-align:top;">
-  <div style="display:inline-flex;align-items:flex-start;padding:8px 4px 0;">
+                    const fullHtml = `<div class="tc-static" style="display:block;width:100%;overflow-x:auto;background:rgb(38, 38, 38);border:1px solid ${color}22;border-radius:8px;padding:8px 0 16px;margin:16px 0;vertical-align:top;">
+  <div style="display:inline-flex;align-items:flex-start;padding:4px 2px 0;">
 ${html}
   </div>
 </div>`;

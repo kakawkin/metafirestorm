@@ -165,7 +165,8 @@
 
           const fromA = getNodeRank(node, build) > 0;
           const toA   = getNodeRank(target, build) > 0;
-          const color = fromA && toA ? '#c9b27a' : '#3a3529';
+          const toAvail = isNodeAvailable(target, build, nodeMap);
+          const color = fromA && toA ? '#c9b27a' : fromA && toAvail ? '#5a5549' : '#3a3529';
           const sw    = fromA && toA ? 1.25 : 1;
 
           result.push({ key, x1, y1, x2, y2, pts, color, sw });
@@ -287,14 +288,14 @@
                 width:'100%', height:'100%', display:'block', borderRadius:iconRadius,
                 filter: isEmpty && !avail ? 'grayscale(100%) brightness(0.34)'
                       : hov && !node.freeNode && avail ? 'brightness(1.18)'
-                      : isEmpty           ? 'brightness(1)'
+                      : isEmpty           ? 'grayscale(100%) brightness(0.65)'
                       : 'brightness(1) saturate(1)',
                 transition:'filter 0.2s',
               }}
               onError={e => e.target.src=`${ICON_BASE}inv_misc_questionmark.jpg`} />
           )}
         </button>
-        {maxRank > 1 && (
+        {maxRank > 1 && rank > 0 && (
           <div style={{
             position:'absolute', right:-2, bottom:-2,
             fontSize:12, fontWeight:700, lineHeight:1,
@@ -818,7 +819,8 @@
         const pts = `${tipX},${tipY} ${bx + nx * ARROW_W},${by + ny * ARROW_W} ${bx - nx * ARROW_W},${by - ny * ARROW_W}`;
         const fromA = getNodeRank(node, build) > 0;
         const toA = getNodeRank(target, build) > 0;
-        const col = fromA && toA ? '#c9b27a' : '#3a3529';
+        const toAvail = isNodeAvailable(target, build, nodeMap);
+        const col = fromA && toA ? '#c9b27a' : fromA && toAvail ? '#5a5549' : '#3a3529';
         const sw = fromA && toA ? 1.25 : 1;
         svgLines += `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="${col}" stroke-width="${sw}" stroke-linecap="round"/>`;
         svgLines += `<polygon points="${pts}" fill="${col}"/>`;
@@ -844,23 +846,23 @@
       const avail = isNodeAvailable(node, build, nodeMap);
       const filter = isEmpty && !avail
         ? 'grayscale(100%) brightness(0.34)'
-        : isEmpty ? 'brightness(1)' : 'brightness(1) saturate(1)';
+        : isEmpty ? 'grayscale(100%) brightness(0.65)' : 'brightness(1) saturate(1)';
       const border = isFull
         ? '2px solid #dec57f'
         : rank > 0 || avail ? '2px solid #84ad57' : '2px solid #3b3429';
       const entryName = escapeHtml(entry.name || '');
       nodesHtml += `<div title="${entryName}" style="position:absolute;left:${x}px;top:${y}px;width:${CELL_PX}px;height:${CELL_PX}px;">`;
       nodesHtml += `<img src="${iconUrl(entry.icon)}" alt="${entryName}" style="width:100%;height:100%;display:block;border-radius:${radius};border:${border};filter:${filter};box-sizing:border-box;"/>`;
-      if (maxRank > 1) {
+      if (maxRank > 1 && rank > 0) {
         nodesHtml += `<div style="position:absolute;right:-2px;bottom:-2px;font-size:9px;font-weight:700;color:#fff;background:#000;border-radius:2px;padding:0 3px;font-family:'Exo 2',sans-serif;white-space:nowrap;text-shadow:1px 1px 0 #242424,0 1px 0 #242424,-1px 1px 0 #242424,-1px 0 0 #242424,-1px -1px 0 #242424,0 -1px 0 #242424,1px -1px 0 #242424,1px 0 0 #242424;line-height:1;z-index:2;">${rank}/${maxRank}</div>`;
       }
       nodesHtml += '</div>';
     }
 
     return `
-<div style="flex:0 0 auto;padding:0 16px 16px;${isLast ? '' : `border-right:1px solid ${color}18;`} ">
+<div style="flex:0 0 auto;padding:0 12px 12px;${isLast ? '' : `border-right:1px solid ${color}18;`} ">
   <div style="color:${color};font-size:12px;font-weight:700;font-family:'Exo 2',sans-serif;padding:6px 12px 10px;margin-bottom:10px;background:linear-gradient(90deg,transparent,${color}18,transparent);border-bottom:1px solid ${color}22;text-align:center;">${escapeHtml(title)}</div>
-  <div style="position:relative;width:${W}px;height:${H}px;">
+  <div style="position:relative;width:${W}px;height:${H}px;margin:0 auto;">
     <svg style="position:absolute;top:0;left:0;width:100%;height:100%;overflow:visible;pointer-events:none;">${svgLines}</svg>
     ${nodesHtml}
   </div>
@@ -908,9 +910,11 @@
       )
       .join('');
 
-    return `<div class="tc-static" style="display:inline-block;max-width:100%;overflow-x:auto;background:radial-gradient(ellipse at center, rgba(38, 38, 38, 0.7) 0%, rgba(38, 38, 38, 0.55) 55%, rgba(38, 38, 38, 0.18) 100%);border:none;border-radius:8px;padding:8px 0 16px;margin:16px 0;vertical-align:top;">
-  <div style="display:inline-flex;align-items:flex-start;padding:8px 4px 0;">
+    return `<div class="tc-scale-wrapper" style="width:fit-content;">
+  <div class="tc-static" style="display:block;overflow-x:auto;background:radial-gradient(ellipse at center, rgba(38, 38, 38, 0.7) 0%, rgba(38, 38, 38, 0.55) 55%, rgba(38, 38, 38, 0.18) 100%);border:none;border-radius:8px;padding:8px 0 16px;margin:16px 0;vertical-align:top;">
+    <div style="display:inline-flex;align-items:flex-start;padding:4px 2px 0;">
 ${html}
+    </div>
   </div>
 </div>`;
   }
@@ -1218,8 +1222,9 @@ ${html}
 
   function TalentStatic({ classId: classIdProp, specId: specIdProp, loadoutCode = '', code = '' }) {
     const [talentsData, setTalentsData] = useState(_talentsCache);
-    const [error, setError] = useState(null);
-    const [copied, setCopied] = useState(false);
+    const [error, setError]             = useState(null);
+    const [copied, setCopied]           = useState(false);
+    const containerRef = useRef(null);
 
     const { classId, specId } = useMemo(() => {
       if (typeof classIdProp === 'number' && typeof specIdProp === 'number') {
@@ -1273,6 +1278,34 @@ ${html}
       }
     }, [current, loadoutCode, code, classId]);
 
+    // Автомасштабирование: если талант-блок шире контейнера — уменьшаем
+    useEffect(() => {
+      const parent = containerRef.current;
+      if (!parent) return;
+      const child = parent.querySelector('.tc-scale-wrapper');
+      if (!child) return;
+
+      const applyScale = () => {
+        const avail = parent.clientWidth;
+        const need = child.scrollWidth;
+        if (need > avail && avail > 0) {
+          const s = avail / need;
+          child.style.transform = `scale(${s})`;
+          child.style.transformOrigin = 'top left';
+          parent.style.height = `${child.scrollHeight * s}px`;
+        } else {
+          child.style.transform = '';
+          child.style.transformOrigin = '';
+          parent.style.height = '';
+        }
+      };
+
+      applyScale();
+      const ro = new ResizeObserver(applyScale);
+      ro.observe(parent);
+      return () => ro.disconnect();
+    }, [result.html]);
+
     if (error) return (
       <div style={{ color:'#c55', padding:12, fontFamily:'sans-serif', fontSize:16 }}>
         Не удалось загрузить таланты: {error}
@@ -1324,7 +1357,9 @@ ${html}
             {copied ? 'Скопировано' : 'Скопировать код талантов'}
           </button>
         )}
-        <div style={{ display:'contents' }} dangerouslySetInnerHTML={{ __html: result.html }} />
+        <div ref={containerRef} style={{ width:'100%', overflow:'hidden' }}>
+          <div style={{ display:'contents' }} dangerouslySetInnerHTML={{ __html: result.html }} />
+        </div>
       </div>
     );
   }
