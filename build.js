@@ -19,7 +19,7 @@ const files = [
 ];
 
 const tmpFile = path.join(__dirname, '_bundle_entry.jsx');
-let code = '';
+let code = 'const { useState, useEffect, useMemo } = React;\n';
 
 for (const f of files) {
   const p = path.join(__dirname, f);
@@ -27,12 +27,11 @@ for (const f of files) {
     console.error('Missing file:', p);
     process.exit(1);
   }
-  const content = fs.readFileSync(p, 'utf-8');
-  // Wrap in IIFE to avoid variable conflicts between modules
-  code += `(function(){
-${content}
-})();
-`;
+  let content = fs.readFileSync(p, 'utf-8');
+  // Remove duplicate React hook destructuring declarations (we already declared them above)
+  content = content.replace(/^const \{ useState, useEffect(?:, useMemo)? \} = React;\s*\n?/gm, '');
+  // Concatenate all files into one global scope so functions are visible to each other
+  code += content + '\n';
 }
 
 fs.writeFileSync(tmpFile, code, 'utf-8');
