@@ -1,6 +1,9 @@
-// Компонент обратной связи - отправка в Discord webhook
+// Компонент обратной связи — отправка через Google Apps Script прокси
+// Webhook URL Discord спрятан на сервере Google Apps Script
 
-function FeedbackModal({isOpen, onClose, discordWebhook}) {
+const FEEDBACK_PROXY_URL = 'https://script.google.com/macros/s/AKfycbwS4cJcWtv6AXNqDhEoUR5xmAen-MBddZLL1JC6QXpIioe-y_WV2OXPP0DDWJ1R_dWo/exec';
+
+function FeedbackModal({isOpen, onClose}) {
   const [name, setName] = React.useState('');
   const [message, setMessage] = React.useState('');
   const [sending, setSending] = React.useState(false);
@@ -18,54 +21,30 @@ function FeedbackModal({isOpen, onClose, discordWebhook}) {
     setStatus(null);
 
     try {
-      // Формируем красивое embed-сообщение для Discord
-      const embed = {
-        title: '💬 Новая обратная связь с сайта',
-        color: 0xF89737, // Цвет акцента сайта
-        fields: [
-          {
-            name: '👤 От кого',
-            value: name.trim() || 'Аноним',
-            inline: true
-          },
-          {
-            name: '📅 Дата',
-            value: new Date().toLocaleString('ru-RU'),
-            inline: true
-          },
-          {
-            name: '💬 Сообщение',
-            value: message.trim()
-          }
-        ],
-        footer: {
-          text: 'Firestorm Stats — Обратная связь'
-        }
-      };
-
-      const response = await fetch(discordWebhook, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          embeds: [embed]
-        })
+      // Google Apps Script не поддерживает CORS заголовки в V8 runtime.
+      // Используем GET + mode: 'no-cors' — браузер не проверяет CORS,
+      // запрос доходит до сервера, но response не читаем (opaque).
+      const params = new URLSearchParams();
+      params.set('name', name.trim() || 'Аноним');
+      params.set('message', message.trim());
+      params.set('date', new Date().toLocaleString('ru-RU'));
+      
+      await fetch(FEEDBACK_PROXY_URL + '?' + params.toString(), {
+        method: 'GET',
+        mode: 'no-cors'
       });
 
-      if (response.ok) {
-        setStatus('success');
-        setName('');
-        setMessage('');
-        setTimeout(() => {
-          onClose();
-          setStatus(null);
-        }, 2000);
-      } else {
-        throw new Error('Failed to send');
-      }
+      // С no-cors мы не можем проверить ответ, но запрос ушёл.
+      // Показываем успех сразу (если нет сетевой ошибки — fetch не бросит исключение).
+      setStatus('success');
+      setName('');
+      setMessage('');
+      setTimeout(() => {
+        onClose();
+        setStatus(null);
+      }, 2000);
     } catch (error) {
-      console.error('Ошибка отправки в Discord:', error);
+      console.error('Ошибка отправки:', error);
       setStatus('error');
     } finally {
       setSending(false);

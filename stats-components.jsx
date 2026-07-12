@@ -131,13 +131,15 @@ function SecondariesBlock({avgStats, statsSource, builds, segments, classColor})
 
   return (
     <div className="sec-block">
-      <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', gap:12, marginBottom:8}}>
+      <div style={{display:'flex', alignItems:'center', justifyContent:'center', gap:12, marginBottom:8, position:'relative'}}>
         <div className="sec-title" style={{marginBottom:0}}>
           Вторичные характеристики <span style={{fontSize:'0.75em', color:'var(--ink-dim)', fontWeight:400}}>(медиана)</span>
         </div>
         <button
           onClick={() => setSourceModalOpen(true)}
           style={{
+            position:'absolute',
+            right:0,
             padding:'7px 12px',
             borderRadius:6,
             border:'1px solid var(--line)',
@@ -396,119 +398,94 @@ function BestTierSet({tierStats, classColor}){
 
 function BestEnchants({enchants, classColor}){
   if(!enchants || !enchants.length) return null;
-  
+
   const bySlot = {};
   enchants.forEach(ench => {
-    if(!bySlot[ench.slot] || bySlot[ench.slot].pct < ench.pct) {
-      bySlot[ench.slot] = ench;
+    const slotKey = (ench.slot || '').toLowerCase();
+    if(!slotKey) return;
+    if(!bySlot[slotKey] || bySlot[slotKey].pct < ench.pct) {
+      bySlot[slotKey] = ench;
     }
   });
-  
-  const items = Object.values(bySlot);
-  
-  if(items.length === 0) return null;
-  
+
+  const SLOT_LABELS = {
+    back: 'Спина',
+    chest: 'Грудь',
+    wrist: 'Запястья',
+    legs: 'Ноги',
+    main_hand: 'Правая рука',
+    off_hand: 'Левая рука',
+  };
+
+  const LEFT_SLOTS = ['back', 'chest', 'wrist'];
+  const RIGHT_SLOTS = ['legs', 'main_hand', 'off_hand'];
+
+  const hasAny = [...LEFT_SLOTS, ...RIGHT_SLOTS].some(s => bySlot[s]);
+  if(!hasAny) return null;
+
+  const renderEnch = (ench) => {
+    const enchUrl = ench.spellId 
+      ? `https://www.wowhead.com/ru/spell=${ench.spellId}`
+      : null;
+    return enchUrl ? (
+      <a 
+        href={enchUrl}
+        data-wowhead={`spell=${ench.spellId}`}
+        className="enchant-name-link"
+      >
+        <img 
+          src="https://wow.zamimg.com/images/wow/icons/large/inv_misc_enchantedscroll.jpg"
+          alt={ench.name}
+          className="enchant-icon"
+        />
+        <span>{ench.name}</span>
+      </a>
+    ) : (
+      <span className="enchant-name-link" style={{color:'var(--ink-mute)'}}>
+        <img 
+          src="https://wow.zamimg.com/images/wow/icons/large/inv_misc_enchantedscroll.jpg"
+          alt={ench.name}
+          className="enchant-icon"
+        />
+        <span>{ench.name}</span>
+      </span>
+    );
+  };
+
   return (
     <div className="stat-section">
-      <div className="stat-section-title">Best Enchants</div>
-      <div className="_5qp16">
-        {items.map((ench, i) => {
-          const isLeft = i % 2 === 0;
-          const enchUrl = ench.spellId 
-            ? `https://www.wowhead.com/ru/spell=${ench.spellId}`
-            : null;
-          
-          return (
-            <div 
-              key={i} 
-              className="_ujgwdz" 
-              style={{
-                display: 'flex',
-                flexDirection: isLeft ? 'row' : 'row-reverse',
-                gap: '10px',
-                marginBottom: '10px',
-                alignItems: 'center'
-              }}
-            >
-              <div className="_3w7ci9" style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: isLeft ? 'flex-start' : 'flex-end',
-                paddingTop: '5px',
-                flex: 1
-              }}>
-                <h3 style={{fontSize:16, margin: 0, marginBottom: 4}}>{ench.slot}</h3>
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  flexDirection: isLeft ? 'row' : 'row-reverse'
-                }}>
-                  {enchUrl ? (
-                    <a 
-                      href={enchUrl}
-                      data-wowhead={`spell=${ench.spellId}`}
-                      data-wh-rename-link="false"
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        textDecoration: 'none',
-                        flexDirection: isLeft ? 'row' : 'row-reverse'
-                      }}
-                    >
-                      <img 
-                        src="https://wow.zamimg.com/images/wow/icons/large/inv_misc_enchantedscroll.jpg"
-                        alt={ench.name}
-                        style={{
-                          width: 36,
-                          height: 36,
-                          borderRadius: '6px',
-                          border: '2px solid #a335ee'
-                        }}
-                      />
-                      <span style={{
-                        color: '#6cd3ff',
-                        fontSize:17,
-                        whiteSpace: 'nowrap'
-                      }}>
-                        {ench.name}
-                      </span>
-                    </a>
-                  ) : (
-                    <>
-                      <img 
-                        src="https://wow.zamimg.com/images/wow/icons/large/inv_misc_enchantedscroll.jpg"
-                        alt={ench.name}
-                        style={{
-                          width: 36,
-                          height: 36,
-                          borderRadius: '6px',
-                          border: '2px solid #a335ee'
-                        }}
-                      />
-                      <span style={{fontSize:17, whiteSpace: 'nowrap'}}>{ench.name}</span>
-                    </>
-                  )}
-                </div>
+      <div className="stat-section-title">Лучшие чарки</div>
+      <div className="enchants-layout">
+        <div className="enchants-col enchants-col-left">
+          {LEFT_SLOTS.map(slot => {
+            const ench = bySlot[slot];
+            if(!ench) return null;
+            return (
+              <div key={slot} className="enchant-row">
+                <span className="enchant-pct" style={{color: classColor}}>
+                  {roundPct(ench.pct)}%
+                </span>
+                {renderEnch(ench)}
+                <span className="enchant-slot">{SLOT_LABELS[slot]}</span>
               </div>
-              <div style={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                border: '2px solid ' + classColor,
-                borderRadius: '10px',
-                padding: '8px 12px',
-                minWidth: '60px',
-                fontWeight: 600,
-                fontSize:19,
-                color: classColor
-              }}>
-                {roundPct(ench.pct)}%
+            );
+          })}
+        </div>
+        <div className="enchants-col enchants-col-right">
+          {RIGHT_SLOTS.map(slot => {
+            const ench = bySlot[slot];
+            if(!ench) return null;
+            return (
+              <div key={slot} className="enchant-row">
+                <span className="enchant-slot">{SLOT_LABELS[slot]}</span>
+                <span className="enchant-pct" style={{color: classColor}}>
+                  {roundPct(ench.pct)}%
+                </span>
+                {renderEnch(ench)}
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
     </div>
   );

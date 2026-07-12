@@ -333,6 +333,7 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
 .sec-title {
   font-size: 14px; font-weight: 700; letter-spacing: .06em;
   color: var(--ink-mute); text-transform: uppercase; margin-bottom: 12px;
+  text-align: center;
 }
 .sec-subtitle {
   font-size: 14px; color: var(--ink-mute); opacity: 0.7; margin-bottom: 8px;
@@ -361,9 +362,70 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
 .stat-section-title {
   font-size: 17px; font-weight: 700; 
   color: var(--ink); margin-bottom: 12px;
+  text-align: center;
 }
 .stat-items-list {
   display: flex; flex-direction: column; gap: 8px;
+}
+
+/* Enchants layout */
+.enchants-layout {
+  display: flex;
+  justify-content: center;
+  gap: 48px;
+  margin-top: 4px;
+}
+.enchants-col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.enchants-col-left {
+  align-items: flex-end;
+}
+.enchants-col-right {
+  align-items: flex-start;
+}
+.enchant-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.enchant-slot {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--ink-mute);
+  min-width: 90px;
+  text-align: center;
+}
+.enchant-pct {
+  font-size: 18px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  min-width: 48px;
+  text-align: right;
+  line-height: 1;
+}
+.enchant-name-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: #6cd3ff;
+  font-size: 15px;
+  white-space: nowrap;
+}
+.enchant-name-link:hover {
+  text-decoration: underline;
+}
+.enchant-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  border: 1px solid #a335ee;
+  display: block;
 }
 
 /* Embellishments */
@@ -673,6 +735,7 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
   color: var(--ink-mute);
   text-transform: uppercase;
   margin-bottom: 16px;
+  text-align: center;
 }
 
 .gear-slots-wrap {
@@ -743,6 +806,7 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
   color: var(--ink-mute);
   text-transform: uppercase;
   margin-bottom: 0;
+  text-align: center;
 }
 
 .gear-stats-row {

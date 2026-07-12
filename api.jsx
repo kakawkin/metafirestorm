@@ -11,11 +11,6 @@ const _GH_REPO = (function(){
   return '';
 })();
 
-function _dataPath({mode, segment, classId, specId, suffix}){
-  const enc = (segment == null || segment == '0' || segment == 0) ? 'all' : segment;
-  return `${_GH_REPO}/data/${mode}/${classId}/${specId}/${enc}_${suffix}.json`;
-}
-
 const CLASSES = [
   { id:'deathknight', api:'DeathKnight', name:'Рыцарь смерти',      color:'#C41E3A', icon:_GH_REPO + '/wow-icons/deathknight.jpg',
     specs:[{id:'blood',api:'Blood',name:'Кровь',role:'tank',icon:_GH_REPO + '/wow-icons/specs/spell_deathknight_bloodpresence.gif'},{id:'frost',api:'Frost',name:'Лёд',role:'dps',icon:_GH_REPO + '/wow-icons/specs/spell_deathknight_frostpresence.gif'},{id:'unholy',api:'Unholy',name:'Нечестивость',role:'dps',icon:_GH_REPO + '/wow-icons/specs/spell_deathknight_unholypresence.gif'}] },
@@ -88,26 +83,16 @@ async function fetchJson(path){
 }
 
 async function apiPlayers({mode, segment, classId, specId, limit=2000}){
-  const cls = CLASSES.find(c=>c.id===classId);
-  const spec = cls && cls.specs.find(s=>s.id===specId);
-  const params = new URLSearchParams();
-  // Передаём короткие ID (classId, specId) — они маппятся на бэкенде в mappings.py
-  if(classId) params.set('class', classId);
-  if(specId) params.set('spec', specId);
-  // segment = encounter_id (номер босса/подземелья)
-  // segment='0' означает "Общее" (все боссы), не передаём encounter в этом случае
-  if(segment != null && segment != '0' && segment != 0) params.set('encounter', segment);
-  // Передаём mode (raid / mplus) для фильтрации content_type
-  if(mode) params.set('mode', mode);
-  // Если выбранный спек — хил, по умолчанию запрашиваем hps
-  if(spec && spec.role === 'heal') {
-    params.set('metric', 'hps');
+  const enc = (segment == null || segment == '0' || segment == 0) ? 'all' : segment;
+  const url = `${_GH_REPO}/data/${mode}/${classId}/${specId}/${enc}_players.json`;
+  try {
+    const r = await fetch(url);
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const data = await r.json();
+    return { ok:true, data: data.slice(0, limit) };
+  } catch(e){
+    return { ok:true, data: [], mock:true };
   }
-  params.set('limit', String(limit));
-  const res = await fetchJson('/api/players?' + params.toString());
-  if(res.ok) return res;
-  // Fallback: generate mock
-  return { ok:true, data: window.MOCK_PLAYERS(mode, segment, classId, specId), mock:true };
 }
 
 async function apiAddons(){
@@ -140,9 +125,10 @@ async function apiEmbellishments(){
 }
 
 async function apiStats({mode, segment, classId, specId}){
-  const path = _dataPath({mode, segment, classId, specId, suffix: 'stats'});
+  const enc = (segment == null || segment == '0' || segment == 0) ? 'all' : segment;
+  const url = `${_GH_REPO}/data/${mode}/${classId}/${specId}/${enc}_stats.json`;
   try {
-    const r = await fetch(path);
+    const r = await fetch(url);
     if(!r.ok) throw new Error('HTTP '+r.status);
     return { ok:true, data: await r.json() };
   } catch(e){

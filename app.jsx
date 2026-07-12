@@ -350,7 +350,6 @@ function App(){
       <FeedbackModal 
         isOpen={feedbackOpen} 
         onClose={() => setFeedbackOpen(false)}
-        discordWebhook={window.DISCORD_WEBHOOK_URL}
       />
       
       <DonateModal 

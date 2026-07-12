@@ -2,21 +2,6 @@
 <html lang="ru">
     <head>
         <meta charset="utf-8" />
-    <!-- SEO / Open Graph / Twitter Cards -->
-    <meta name="description" content="Firestorm — статистика, рейтинги, гайды и лучшие сборки для World of Warcraft: The War Within. Анализ топовых игроков, популярная экипировка, таланты, аддоны и WeakAuras." />
-    <meta name="keywords" content="WoW, World of Warcraft, Firestorm, статистика, рейтинги, гайды, аддоны, WeakAuras, таланты, экипировка, The War Within" />
-    <meta name="author" content="Firestorm" />
-    <meta name="robots" content="index, follow" />
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://metafirestorm.ru" />
-    <meta property="og:title" content="Firestorm — Статистика и рейтинги WoW" />
-    <meta property="og:description" content="Статистика, гайды и лучшие сборки для World of Warcraft: The War Within." />
-    <meta property="og:image" content="https://metafirestorm.ru/logo.png" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Firestorm — Статистика и рейтинги WoW" />
-    <meta name="twitter:description" content="Статистика, гайды и лучшие сборки для World of Warcraft." />
-    <meta name="twitter:image" content="https://metafirestorm.ru/logo.png" />
-    <link rel="canonical" href="https://metafirestorm.ru" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <base href="/" />
         <title>Firestorm — Статистика и рейтинги</title>
@@ -26,15 +11,11 @@
             href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap"
             rel="stylesheet"
         />
+        <base href=".//" />
         <link rel="stylesheet" href="./styles.css?v=56" />
         <script>
             // Set this to point at the FastAPI server. Default localhost:8000.
             window.FIRESTORM_API_BASE = "http://localhost:8000";
-
-            // Discord Webhook URL для обратной связи
-            // ВАЖНО: Замените на свой Discord webhook URL!
-            window.DISCORD_WEBHOOK_URL =
-                "https://discord.com/api/webhooks/1507007782665195720/o2eHhBwprwv_5nYNj-Xg2JiZ5EtfjqaX9SXMKGJnPDQPJYhDm5xoEJMJsYgy2nNIHneS";
         </script>
         <!-- Wowhead tooltips и иконки предметов -->
         <script>
@@ -74,26 +55,37 @@
     <body>
         <div id="root"></div>
 
-        <!-- React PRODUCTION — jsdelivr (более стабилен в РФ) -->
-        <script src="https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js" crossorigin></script>
-        <script src="https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin></script>
+        <script
+            src="https://unpkg.com/react@18.3.1/umd/react.development.js"
+            integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L"
+            crossorigin="anonymous"
+        ></script>
+        <script
+            src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js"
+            integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm"
+            crossorigin="anonymous"
+        ></script>
+        <script
+            src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"
+            integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y"
+            crossorigin="anonymous"
+        ></script>
         <!-- Markdown parser -->
         <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
 
-        <!-- Диагностика: показываем ошибки JS прямо на странице -->
-        <script>
-            window.onerror = function(msg, url, line, col, err) {
-                var el = document.getElementById('root');
-                if (el) el.innerHTML = '<pre style="color:#ff5555;background:#1a0505;padding:20px;font-family:monospace;white-space:pre-wrap;word-break:break-all;"><b>JS Error:</b> ' + msg + ' at ' + line + ':' + col + '\n' + (err && err.stack) + '</pre>';
-            };
-            window.onunhandledrejection = function(e) {
-                var el = document.getElementById('root');
-                if (el) el.innerHTML = '<pre style="color:#ff5555;background:#1a0505;padding:20px;font-family:monospace;white-space:pre-wrap;word-break:break-all;"><b>Unhandled Promise Rejection:</b> ' + e.reason + '</pre>';
-            };
-        </script>
-
-        <!-- Весь JS собран заранее -->
-        <script src="./bundle.js?v=4"></script>
+        <script type="text/babel" src="./mock.jsx?v=43"></script>
+        <script type="text/babel" src="./api.jsx?v=45"></script>
+        <script type="text/babel" src="./ui.jsx?v=43"></script>
+        <script type="text/babel" src="./pickers.jsx?v=45"></script>
+        <script type="text/babel" src="./stats-components.jsx?v=2"></script>
+        <script type="text/babel" src="./stats-legacy.jsx?v=1"></script>
+        <script type="text/babel" src="./stats.jsx?v=45"></script>
+        <script type="text/babel" src="./TalentCalc.jsx?v=12"></script>
+        <script type="text/babel" src="./guides.jsx?v=50"></script>
+        <script type="text/babel" src="./players.jsx?v=43"></script>
+        <script type="text/babel" src="./feedback.jsx?v=43"></script>
+        <script type="text/babel" src="./donate.jsx?v=43"></script>
+<script type="text/babel" src="./app.jsx?v=45"></script>
 
         <!-- Guide Tabs Switcher -->
         <script>

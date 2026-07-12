@@ -35,7 +35,7 @@ function StatsBlock({stats, players, playersLoading, classColor}){
       {/* Топ игроков */}
       {PlayersList && (
         <div style={{marginTop:24}}>
-          <div style={{fontSize:20, fontWeight:700, marginBottom:12, color:'var(--ink)'}}>
+          <div style={{fontSize:20, fontWeight:700, marginBottom:12, color:'var(--ink)', textAlign:'center'}}>
             Топ игроков
           </div>
           {playersLoading ? (
