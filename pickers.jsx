@@ -93,45 +93,5 @@ function ClassSpecPicker({classId, specId, setClass, setSpec}){
   );
 }
 
-function BossGuidePicker({ bossId, setBoss }) {
-  const { RAID_BOSSES } = window.FIRESTORM;
-  const bosses = RAID_BOSSES.filter((boss) => String(boss.id) !== '0');
-  const [brokenIcons, setBrokenIcons] = React.useState({});
 
-  return (
-    <div className="boss-guide-picker">
-      <div className="boss-guide-grid">
-        {bosses.map((boss) => {
-          const iconSrc = boss.icon || `raid-icons/${boss.id}.jpg`;
-          const hasIcon = !!boss.icon && !brokenIcons[boss.id];
-          return (
-            <button
-              key={boss.id}
-              className={`boss-guide-card ${bossId === boss.id ? 'on' : ''}`}
-              onClick={() => setBoss(boss.id)}
-              type="button"
-            >
-              <div className="boss-guide-thumb-wrap">
-                {hasIcon ? (
-                  <img
-                    className="boss-guide-thumb"
-                    src={iconSrc}
-                    alt={boss.name}
-                    onError={() => setBrokenIcons((prev) => ({ ...prev, [boss.id]: true }))}
-                  />
-                ) : (
-                  <div className="boss-guide-thumb boss-guide-thumb-placeholder">
-                    <span>{boss.order ? String(boss.order).padStart(2, '0') : '00'}</span>
-                  </div>
-                )}
-              </div>
-              <div className="boss-guide-name">{boss.name}</div>
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-window.PICKERS = { ModePicker, ClassSpecPicker, BossGuidePicker };
+window.PICKERS = { ModePicker, ClassSpecPicker };

@@ -47,14 +47,6 @@ function App(){
     }
     if (!parts.length) return {};
 
-    if (parts[0] === 'raidguide' && parts[1]) {
-      const found = RAID_BOSSES.find(b => b.slug === parts[1]);
-      return {
-        section: 'raidguide',
-        bossId: found ? found.id : null,
-        difficulty: ['heroic','mythic'].includes(parts[2]) ? parts[2] : null
-      };
-    }
 
     if (parts[0] === 'rankings' && parts.length >= 5) {
       const seg = parts[2] === 'all' ? '0' : parts[2];
@@ -64,7 +56,7 @@ function App(){
         segment: seg,
         classId: parts[3],
         specId: parts[4],
-        tab: ['stats','guide'].includes(parts[5]) ? parts[5] : 'stats'
+        tab: parts[5] === 'stats' ? 'stats' : 'stats'
       };
     }
 
@@ -76,18 +68,10 @@ function App(){
 
   const urlParsed = parsePath(window.location.pathname);
 
-  const raidGuideBosses = RAID_BOSSES.filter(boss => String(boss.id) !== '0');
-  const initialRaidGuideBoss = (() => {
-    if (urlParsed.bossId) return urlParsed.bossId;
-    const fallbackBossId = raidGuideBosses[0]?.id;
-    const saved = loadPref('firestorm-raid-guide-boss', fallbackBossId);
-    return raidGuideBosses.some(boss => String(boss.id) === String(saved)) ? saved : fallbackBossId;
-  })();
-
   const initialMode = normalizeMode(urlParsed.mode || loadPref('firestorm-mode', 'raid'));
   const initialSection = (() => {
     const s = urlParsed.section || loadPref('firestorm-section', 'rankings');
-    return ['rankings', 'raidguide', 'addons', 'weakauras'].includes(s) ? s : 'rankings';
+    return ['rankings', 'addons', 'weakauras'].includes(s) ? s : 'rankings';
   })();
 
   const [section, setSection] = useState(initialSection);
@@ -103,14 +87,7 @@ function App(){
   });
   const [classId, setClassId] = useState(() => urlParsed.classId || loadPref('firestorm-class', 'deathknight'));
   const [specId, setSpecId]   = useState(() => urlParsed.specId || loadPref('firestorm-spec', 'frost'));
-  const [raidGuideBossId, setRaidGuideBossId] = useState(initialRaidGuideBoss);
-
-  const [rankingsTab, setRankingsTab] = useState(() => urlParsed.tab || loadPref('firestorm-rankings-tab', 'stats'));
-
-  // raidguide difficulty
-  const [raidDifficulty, setRaidDifficulty] = useState(() => {
-    return urlParsed.difficulty === 'heroic' ? 'heroic' : 'mythic';
-  });
+  const [rankingsTab, setRankingsTab] = useState('stats');
 
   // Модальные окна
   const [feedbackOpen, setFeedbackOpen] = useState(false);
@@ -119,13 +96,9 @@ function App(){
   // ── Синхронизация состояния → pretty URL ───────────────────────────────
   useEffect(() => {
     let path;
-    if (section === 'raidguide') {
-      const boss = RAID_BOSSES.find(b => String(b.id) === String(raidGuideBossId));
-      const slug = boss?.slug || '';
-      path = slug ? `/raidguide/${slug}/${raidDifficulty}` : '/';
-    } else if (section === 'rankings') {
+    if (section === 'rankings') {
       const seg = segment === '0' || segment === 0 ? 'all' : String(segment);
-      path = `/rankings/${mode}/${seg}/${classId}/${specId}/${rankingsTab}`;
+      path = `/rankings/${mode}/${seg}/${classId}/${specId}/stats`;
     } else if (section === 'addons' || section === 'weakauras') {
       path = `/${section}`;
     } else {
@@ -135,7 +108,7 @@ function App(){
     if (window.location.pathname !== fullPath) {
       history.replaceState(null, '', fullPath);
     }
-  }, [section, mode, segment, classId, specId, raidGuideBossId, rankingsTab, raidDifficulty]);
+  }, [section, mode, segment, classId, specId]);
 
   // ── Синхронизация состояния → localStorage (fallback) ───────────────────
   useEffect(() => { try { localStorage.setItem('firestorm-section', section); } catch (e) {} }, [section]);
@@ -143,8 +116,6 @@ function App(){
   // segment НЕ сохраняется в localStorage (сбрасывается при перезагрузке / переключении табов)
   useEffect(() => { try { localStorage.setItem('firestorm-class', classId); } catch (e) {} }, [classId]);
   useEffect(() => { try { localStorage.setItem('firestorm-spec', specId); } catch (e) {} }, [specId]);
-  useEffect(() => { try { localStorage.setItem('firestorm-raid-guide-boss', String(raidGuideBossId)); } catch (e) {} }, [raidGuideBossId]);
-  useEffect(() => { try { localStorage.setItem('firestorm-rankings-tab', rankingsTab); } catch (e) {} }, [rankingsTab]);
 
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -170,23 +141,6 @@ function App(){
     setSegment(mode==='raid' ? RAID_BOSSES[0].id : MPLUS_DUNGEONS[0].id);
   }, [mode]);
 
-  // При переключении с таба "Гайд" обратно на "Статистика" — сбрасываем segment на "Общее"
-  const isFirstTabChange = React.useRef(true);
-  const prevRankingsTab = React.useRef(rankingsTab);
-  useEffect(() => {
-    if (isFirstTabChange.current) {
-      isFirstTabChange.current = false;
-      prevRankingsTab.current = rankingsTab;
-      return;
-    }
-    const wasGuide = prevRankingsTab.current === 'guide';
-    const isStats = rankingsTab === 'stats';
-    prevRankingsTab.current = rankingsTab;
-    if (section === 'rankings' && wasGuide && isStats) {
-      setSegment(mode==='raid' ? RAID_BOSSES[0].id : MPLUS_DUNGEONS[0].id);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rankingsTab]);
 
   // При возвращении в раздел "Рейтинги" из другой секции — тоже сбрасываем на "Общее"
   const isFirstSectionChange = React.useRef(true);
@@ -228,7 +182,7 @@ function App(){
 
   // fetch individual players (top-200 for the leaderboard)
   useEffect(()=>{
-    if(section !== 'rankings' || rankingsTab !== 'stats') return;
+    if(section !== 'rankings') return;
     let cancel = false;
     setPlayersLoading(true);
     apiPlayers({mode, segment, classId, specId, limit: 200}).then(res=>{
@@ -242,7 +196,7 @@ function App(){
       setPlayersLoading(false);
     });
     return ()=>{ cancel = true; };
-  }, [section, mode, segment, classId, specId, rankingsTab]);
+  }, [section, mode, segment, classId, specId]);
 
   // fetch addons / auras once
   useEffect(()=>{
@@ -251,10 +205,6 @@ function App(){
   }, []);
 
   const cls = CLASSES.find(c=>c.id===classId);
-  const selectedRaidGuideBoss = useMemo(
-    () => RAID_BOSSES.find(boss => String(boss.id) === String(raidGuideBossId)) || null,
-    [RAID_BOSSES, raidGuideBossId]
-  );
 
   return (
     <div>
@@ -263,7 +213,6 @@ function App(){
           <img src="logo.png" alt="Firestorm" className="fs-logo"/>
           <nav className="fs-nav">
             <a className={`fs-nav-link ${section==='rankings'?'on':''}`} onClick={e=>{e.preventDefault(); setSection('rankings');}} href="#">Рейтинги</a>
-            <a className={`fs-nav-link ${section==='raidguide'?'on':''}`} onClick={e=>{e.preventDefault(); setSection('raidguide');}} href="#">Рейд гайд</a>
             <a className={`fs-nav-link ${section==='addons'?'on':''}`}   onClick={e=>{e.preventDefault(); setSection('addons');}}   href="#">Аддоны</a>
             <a className={`fs-nav-link ${section==='weakauras'?'on':''}`}onClick={e=>{e.preventDefault(); setSection('weakauras');}}href="#">WeakAuras</a>
           </nav>
@@ -288,32 +237,10 @@ function App(){
               classId={classId} specId={specId}
               setClass={setClassId} setSpec={setSpecId}/>
             
-            {/* Вкладки: Статы / Гайд */}
-            <div className="fs-tabs">
-              <button 
-                className={`fs-tab ${rankingsTab==='stats'?'active':''}`}
-                onClick={() => setRankingsTab('stats')}>
-                📊 Статистика
-              </button>
-              <button 
-                className={`fs-tab ${rankingsTab==='guide'?'active':''}`}
-                onClick={() => setRankingsTab('guide')}>
-                📖 Гайд
-              </button>
-            </div>
-
-            {rankingsTab === 'stats' && (
-              <>
-                {loading ? (
-                  <div className="fs-loading">Загрузка статистики…</div>
-                ) : (
-                  <window.STATS.StatsBlock stats={stats} players={players} playersLoading={playersLoading} classColor={cls.color}/>
-                )}
-              </>
-            )}
-            
-            {rankingsTab === 'guide' && (
-              <window.GUIDES.GuideBlock classId={classId} specId={specId}/>
+            {loading ? (
+              <div className="fs-loading">Загрузка статистики…</div>
+            ) : (
+              <window.STATS.StatsBlock stats={stats} players={players} playersLoading={playersLoading} classColor={cls.color}/>
             )}
           </>
         )}
@@ -325,19 +252,6 @@ function App(){
           </>
         )}
 
-        {section === 'raidguide' && (
-          <>
-            <window.PICKERS.BossGuidePicker bossId={raidGuideBossId} setBoss={setRaidGuideBossId}/>
-            {selectedRaidGuideBoss?.slug ? (
-              <window.GUIDES.StandaloneGuideBlock
-                bossSlug={selectedRaidGuideBoss.slug}
-                title={selectedRaidGuideBoss?.name || 'Рейд гайд'}
-                difficulty={raidDifficulty}
-                onDifficultyChange={setRaidDifficulty}
-              />
-            ) : null}
-          </>
-        )}
 
         {section === 'weakauras' && (
           <>
