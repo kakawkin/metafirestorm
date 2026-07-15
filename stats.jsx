@@ -30,7 +30,7 @@ function StatsBlock({stats, players, playersLoading, classColor}){
         />
       </div>
       
-      <BestEnchants enchants={stats.enchants} classColor={classColor}/>
+      <BestEnchants enchants={stats.enchants} weaponEnchantCombos={stats.weaponEnchantCombos} classColor={classColor}/>
       
       {/* Топ игроков */}
       {PlayersList && (

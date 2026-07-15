@@ -428,6 +428,70 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
   display: block;
 }
 
+/* Weapon enchant combos */
+.weapon-combos-section {
+  margin-top: 12px;
+}
+.weapon-combos-title {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--ink-mute);
+  text-align: center;
+  margin-bottom: 8px;
+}
+.weapon-combos-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 520px;
+  margin: 0 auto;
+}
+.weapon-combo-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.04);
+}
+.weapon-combo-icons {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.weapon-combo-info {
+  flex: 1;
+  min-width: 0;
+}
+.weapon-combo-label {
+  font-size: 14px;
+  color: #6cd3ff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.weapon-combo-separator {
+  color: var(--ink-mute);
+  margin: 0 2px;
+}
+.weapon-combo-x2 {
+  color: var(--ink-mute);
+  font-size: 13px;
+  margin-left: 3px;
+}
+.weapon-combo-pct {
+  font-size: 18px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  min-width: 48px;
+  text-align: right;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
 /* Embellishments */
 .emb-item {
   display: flex;

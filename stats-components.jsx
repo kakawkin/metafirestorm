@@ -396,32 +396,36 @@ function BestTierSet({tierStats, classColor}){
 
 // ── Enchants ────────────────────────────────────────────────────────
 
-function BestEnchants({enchants, classColor}){
-  if(!enchants || !enchants.length) return null;
+function BestEnchants({enchants, weaponEnchantCombos, classColor}){
+  const hasEnchants = enchants && enchants.length > 0;
+  const hasCombos = weaponEnchantCombos && weaponEnchantCombos.length > 0;
+  if(!hasEnchants && !hasCombos) return null;
 
   const bySlot = {};
-  enchants.forEach(ench => {
-    const slotKey = (ench.slot || '').toLowerCase();
-    if(!slotKey) return;
-    if(!bySlot[slotKey] || bySlot[slotKey].pct < ench.pct) {
-      bySlot[slotKey] = ench;
-    }
-  });
+  if(hasEnchants) {
+    enchants.forEach(ench => {
+      const slotKey = (ench.slot || '').toLowerCase();
+      if(!slotKey) return;
+      if(!bySlot[slotKey] || bySlot[slotKey].pct < ench.pct) {
+        bySlot[slotKey] = ench;
+      }
+    });
+  }
 
   const SLOT_LABELS = {
     back: 'Спина',
     chest: 'Грудь',
     wrist: 'Запястья',
     legs: 'Ноги',
-    main_hand: 'Правая рука',
-    off_hand: 'Левая рука',
+    feet: 'Ступни',
+    finger1: 'Кольцо',
+    finger2: 'Кольцо',
   };
 
   const LEFT_SLOTS = ['back', 'chest', 'wrist'];
-  const RIGHT_SLOTS = ['legs', 'main_hand', 'off_hand'];
+  const RIGHT_SLOTS = ['legs', 'feet'];
 
-  const hasAny = [...LEFT_SLOTS, ...RIGHT_SLOTS].some(s => bySlot[s]);
-  if(!hasAny) return null;
+  const hasArmorEnchants = [...LEFT_SLOTS, ...RIGHT_SLOTS].some(s => bySlot[s]);
 
   const renderEnch = (ench) => {
     const enchUrl = ench.spellId 
@@ -455,38 +459,102 @@ function BestEnchants({enchants, classColor}){
   return (
     <div className="stat-section">
       <div className="stat-section-title">Лучшие чарки</div>
-      <div className="enchants-layout">
-        <div className="enchants-col enchants-col-left">
-          {LEFT_SLOTS.map(slot => {
-            const ench = bySlot[slot];
-            if(!ench) return null;
-            return (
-              <div key={slot} className="enchant-row">
-                <span className="enchant-pct" style={{color: classColor}}>
-                  {roundPct(ench.pct)}%
-                </span>
-                {renderEnch(ench)}
-                <span className="enchant-slot">{SLOT_LABELS[slot]}</span>
-              </div>
-            );
-          })}
+      
+      {/* Armor enchants */}
+      {hasArmorEnchants && (
+        <div className="enchants-layout">
+          <div className="enchants-col enchants-col-left">
+            {LEFT_SLOTS.map(slot => {
+              const ench = bySlot[slot];
+              if(!ench) return null;
+              return (
+                <div key={slot} className="enchant-row">
+                  <span className="enchant-pct" style={{color: classColor}}>
+                    {roundPct(ench.pct)}%
+                  </span>
+                  {renderEnch(ench)}
+                  <span className="enchant-slot">{SLOT_LABELS[slot]}</span>
+                </div>
+              );
+            })}
+          </div>
+          <div className="enchants-col enchants-col-right">
+            {RIGHT_SLOTS.map(slot => {
+              const ench = bySlot[slot];
+              if(!ench) return null;
+              return (
+                <div key={slot} className="enchant-row">
+                  <span className="enchant-slot">{SLOT_LABELS[slot]}</span>
+                  <span className="enchant-pct" style={{color: classColor}}>
+                    {roundPct(ench.pct)}%
+                  </span>
+                  {renderEnch(ench)}
+                </div>
+              );
+            })}
+          </div>
         </div>
-        <div className="enchants-col enchants-col-right">
-          {RIGHT_SLOTS.map(slot => {
-            const ench = bySlot[slot];
-            if(!ench) return null;
-            return (
-              <div key={slot} className="enchant-row">
-                <span className="enchant-slot">{SLOT_LABELS[slot]}</span>
-                <span className="enchant-pct" style={{color: classColor}}>
-                  {roundPct(ench.pct)}%
-                </span>
-                {renderEnch(ench)}
-              </div>
-            );
-          })}
+      )}
+
+      {/* Weapon enchant combos */}
+      {hasCombos && (
+        <div className="weapon-combos-section">
+          <div className="weapon-combos-title">Оружие</div>
+          <div className="weapon-combos-list">
+            {weaponEnchantCombos.map((combo, idx) => {
+              const names = combo.enchants.map(e => e.name);
+              const isSame = combo.enchants.length === 2 && combo.enchants[0].spellId === combo.enchants[1].spellId;
+              const label = isSame
+                ? names[0] + ' ×2'
+                : names.join(' + ');
+              return (
+                <div key={idx} className="weapon-combo-card" style={{
+                  borderColor: classColor ? classColor + '33' : 'rgba(255,255,255,0.08)'
+                }}>
+                  <div className="weapon-combo-icons">
+                    {combo.enchants.filter((e, i) => !isSame || i === 0).map((e, i) => (
+                      <a
+                        key={i}
+                        href={`https://www.wowhead.com/ru/spell=${e.spellId}`}
+                        data-wowhead={`spell=${e.spellId}`}
+                        className="enchant-name-link"
+                      >
+                        <img 
+                          src="https://wow.zamimg.com/images/wow/icons/large/inv_misc_enchantedscroll.jpg"
+                          alt={e.name}
+                          className="enchant-icon"
+                        />
+                      </a>
+                    ))}
+                  </div>
+                  <div className="weapon-combo-info">
+                    <span className="weapon-combo-label">
+                      {combo.enchants.map((e, i) => {
+                        const url = `https://www.wowhead.com/ru/spell=${e.spellId}`;
+                        if(isSame && i > 0) return null;
+                        return (
+                          <React.Fragment key={i}>
+                            {i > 0 && <span className="weapon-combo-separator"> + </span>}
+                            <a
+                              href={url}
+                              data-wowhead={`spell=${e.spellId}`}
+                              className="enchant-name-link"
+                            >{e.name}</a>
+                          </React.Fragment>
+                        );
+                      })}
+                      {isSame && <span className="weapon-combo-x2"> ×2</span>}
+                    </span>
+                  </div>
+                  <span className="weapon-combo-pct" style={{color: classColor}}>
+                    {roundPct(combo.pct)}%
+                  </span>
+                </div>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
