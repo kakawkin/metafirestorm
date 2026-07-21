@@ -3,19 +3,19 @@ const path = require('path');
 const esbuild = require('esbuild');
 
 const files = [
-  'mock.jsx',
-  'api.jsx',
-  'ui.jsx',
-  'pickers.jsx',
-  'stats-components.jsx',
-  'stats-legacy.jsx',
-  'stats.jsx',
-  'TalentCalc.jsx',
-  'guides.jsx',
-  'players.jsx',
-  'feedback.jsx',
-  'donate.jsx',
-  'app.jsx'
+  "mock.jsx",
+  "api.jsx",
+  "ui.jsx",
+  "pickers.jsx",
+  "stats-components.jsx",
+  "stats-legacy.jsx",
+  "stats.jsx",
+  "TalentCalc.jsx",
+  "guides.jsx",
+  "players.jsx",
+  "feedback.jsx",
+  "donate.jsx",
+  "app.jsx"
 ];
 
 const tmpFile = path.join(__dirname, '_bundle_entry.jsx');
@@ -55,6 +55,7 @@ esbuild.build({
   const size = fs.statSync(path.join(__dirname, 'bundle.js')).size;
   console.log(`bundle.js = ${(size / 1024).toFixed(1)} KB`);
 }).catch(err => {
+  try { fs.unlinkSync(tmpFile); } catch (_) {}
   console.error(err);
   process.exit(1);
 });

@@ -16,6 +16,94 @@ function AddonsList({items}){
   );
 }
 
+function addDownloadAttributeToTextAndLuaLinks(html){
+  if (!html || typeof document === 'undefined') return html;
+
+  const template = document.createElement('template');
+  template.innerHTML = html;
+
+  template.content.querySelectorAll('a[href]').forEach((link) => {
+    const href = link.getAttribute('href') || '';
+    const cleanHref = href.split('#')[0].split('?')[0];
+    if (!/\.(?:txt|lua)$/i.test(cleanHref)) return;
+
+    const fileName = cleanHref.split('/').pop() || 'download.txt';
+    link.setAttribute('download', fileName);
+  });
+
+  return template.innerHTML;
+}
+
+function TalentsPage(){
+  const [html, setHtml] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    let cancel = false;
+    const basePath = (function(){
+      if (window.location.hostname.indexOf('github.io') !== -1) {
+        const parts = window.location.pathname.split('/').filter(Boolean);
+        if (parts.length > 0) return '/' + parts[0];
+      }
+      return '';
+    })();
+    setLoading(true);
+    setError(null);
+
+    fetch(`${basePath}/talents.md?t=${Date.now()}`, { cache: 'no-store' })
+      .then((res) => {
+        if (!res.ok) throw new Error('Файл talents.md не найден');
+        return res.text();
+      })
+      .then((markdown) => {
+        if (cancel) return;
+        if (window.marked) {
+          marked.setOptions({ breaks: true, gfm: true });
+          setHtml(addDownloadAttributeToTextAndLuaLinks(marked.parse(markdown)));
+        } else {
+          setHtml(`<pre>${markdown.replace(/[&<>]/g, (ch) => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[ch]))}</pre>`);
+        }
+        setLoading(false);
+
+        setTimeout(() => {
+          if (window.$WowheadPower) window.$WowheadPower.refreshLinks();
+        }, 100);
+      })
+      .catch((err) => {
+        if (cancel) return;
+        setError(err.message);
+        setLoading(false);
+      });
+
+    return () => { cancel = true; };
+  }, []);
+
+  if (loading) {
+    return <div className="guide-loading">Загрузка талантов...</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="guide-placeholder">
+        <div className="guide-placeholder-icon">📖</div>
+        <div className="guide-placeholder-title">Раздел талантов пока пуст</div>
+        <div className="guide-placeholder-text">
+          Создайте файл <code>frontend/talents.md</code> и напишите в нём текст в Markdown.
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="guide-with-sidebar">
+      <div className="guide-main-column">
+        <div className="guide-content markdown-body" dangerouslySetInnerHTML={{__html: html}} />
+      </div>
+    </div>
+  );
+}
+
 function App(){
   const { CLASSES, RAID_BOSSES, MPLUS_DUNGEONS, apiPlayers, apiStats, apiAddons, apiWeakauras, normalizePlayer } = window.FIRESTORM;
   const { FeedbackModal } = window.FEEDBACK;
@@ -60,7 +148,7 @@ function App(){
       };
     }
 
-    if (['addons','weakauras'].includes(parts[0])) {
+    if (['addons','weakauras','talents'].includes(parts[0])) {
       return { section: parts[0] };
     }
     return {};
@@ -71,7 +159,7 @@ function App(){
   const initialMode = normalizeMode(urlParsed.mode || loadPref('firestorm-mode', 'raid'));
   const initialSection = (() => {
     const s = urlParsed.section || loadPref('firestorm-section', 'rankings');
-    return ['rankings', 'addons', 'weakauras'].includes(s) ? s : 'rankings';
+    return ['rankings', 'addons', 'weakauras', 'talents'].includes(s) ? s : 'rankings';
   })();
 
   const [section, setSection] = useState(initialSection);
@@ -99,7 +187,7 @@ function App(){
     if (section === 'rankings') {
       const seg = segment === '0' || segment === 0 ? 'all' : String(segment);
       path = `/rankings/${mode}/${seg}/${classId}/${specId}/stats`;
-    } else if (section === 'addons' || section === 'weakauras') {
+    } else if (section === 'addons' || section === 'weakauras' || section === 'talents') {
       path = `/${section}`;
     } else {
       path = '/';
@@ -215,6 +303,7 @@ function App(){
             <a className={`fs-nav-link ${section==='rankings'?'on':''}`} onClick={e=>{e.preventDefault(); setSection('rankings');}} href="#">Рейтинги</a>
             <a className={`fs-nav-link ${section==='addons'?'on':''}`}   onClick={e=>{e.preventDefault(); setSection('addons');}}   href="#">Аддоны</a>
             <a className={`fs-nav-link ${section==='weakauras'?'on':''}`}onClick={e=>{e.preventDefault(); setSection('weakauras');}}href="#">WeakAuras</a>
+            <a className={`fs-nav-link ${section==='talents'?'on':''}`}  onClick={e=>{e.preventDefault(); setSection('talents');}}  href="#">Таланты</a>
           </nav>
           <div className="fs-header-actions">
             <button className="feedback-trigger" onClick={() => setFeedbackOpen(true)}>
@@ -257,6 +346,13 @@ function App(){
           <>
             <p className="fs-page-sub">Готовые наборы триггеров и индикаторов</p>
             <AddonsList items={auras}/>
+          </>
+        )}
+
+        {section === 'talents' && (
+          <>
+            <p className="fs-page-sub">Тексты, билды и заметки по талантам из Markdown-файла</p>
+            <TalentsPage />
           </>
         )}
       </main>

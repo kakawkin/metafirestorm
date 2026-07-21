@@ -508,9 +508,7 @@ function BestEnchants({enchants, weaponEnchantCombos, classColor}){
                 ? names[0] + ' ×2'
                 : names.join(' + ');
               return (
-                <div key={idx} className="weapon-combo-card" style={{
-                  borderColor: classColor ? classColor + '33' : 'rgba(255,255,255,0.08)'
-                }}>
+                <div key={idx} className="weapon-combo-card">
                   <div className="weapon-combo-icons">
                     {combo.enchants.filter((e, i) => !isSame || i === 0).map((e, i) => (
                       <a
