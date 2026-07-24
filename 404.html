@@ -1,0 +1,15 @@
+<!doctype html>
+<html>
+<head>
+    <script>
+        var path = window.location.pathname;
+        var repo = '/metafirestorm';
+        if (path.indexOf(repo) === 0) {
+            path = path.substring(repo.length) || '/';
+        }
+        sessionStorage.setItem('gh-spa-redirect', path + location.search + location.hash);
+        window.location.replace(repo + '/');
+    </script>
+</head>
+<body>Перенаправление...</body>
+</html>
