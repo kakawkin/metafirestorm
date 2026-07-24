@@ -77,12 +77,12 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
 }
 .fs-header-inner {
   max-width: 1320px; margin: 0 auto; padding: 14px 28px;
-  display: flex; align-items: center; gap: 18px;
+  display: flex; align-items: center; gap: 18px; justify-content: space-between;
   background: rgba(38, 38, 38, 0.9);
   position: relative;
 }
 .fs-header-actions {
-  margin-left: auto;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -91,13 +91,14 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
   height: 48px;
   display: block;
   margin: -14px 0;
+  flex-shrink: 0;
 }
-.fs-nav { 
-  display: flex; 
+.fs-nav {
+  display: flex;
   gap: 2px;
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
+  flex: 1;
+  justify-content: center;
+  flex-wrap: wrap;
 }
 .fs-nav-link {
   padding: 8px 14px; font-size: 16px; font-weight: 600;
@@ -333,7 +334,7 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
 .sec-title {
   font-size: 14px; font-weight: 700; letter-spacing: .06em;
   color: var(--ink-mute); text-transform: uppercase; margin-bottom: 12px;
-  text-align: center;
+  text-align: center; background: rgba(42, 42, 42, 0.7); border: 1px solid var(--line-gold); border-radius: 8px; padding: 8px 12px; width: fit-content; margin-left: auto; margin-right: auto; 
 }
 .sec-subtitle {
   font-size: 14px; color: var(--ink-mute); opacity: 0.7; margin-bottom: 8px;
@@ -362,7 +363,7 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
 .stat-section-title {
   font-size: 17px; font-weight: 700; 
   color: var(--ink); margin-bottom: 12px;
-  text-align: center;
+  text-align: center; background: rgba(42, 42, 42, 0.7); border: 1px solid var(--line-gold); border-radius: 8px; padding: 8px 12px; width: fit-content; margin-left: auto; margin-right: auto; 
 }
 .stat-items-list {
   display: flex; flex-direction: column; gap: 8px;
@@ -390,6 +391,14 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
   display: flex;
   align-items: center;
   gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--line-gold);
+  border-radius: 8px;
+  background: rgba(42, 42, 42, 0.7);
+  transition: border-color .12s;
+}
+.enchant-row:hover {
+  border-color: rgba(184, 154, 74, 0.9);
 }
 .enchant-slot {
   font-size: 12px;
@@ -439,7 +448,7 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
   letter-spacing: .06em;
   color: var(--ink-mute);
   text-align: center;
-  margin-bottom: 8px;
+  margin-bottom: 8px; background: rgba(42, 42, 42, 0.7); border: 1px solid var(--line-gold); border-radius: 8px; padding: 8px 12px; width: fit-content; margin-left: auto; margin-right: auto; 
 }
 .weapon-combos-list {
   display: flex;
@@ -452,9 +461,14 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 2px 0;
-  border: 0;
-  background: transparent;
+  padding: 8px 10px;
+  border: 1px solid var(--line-gold);
+  border-radius: 8px;
+  background: rgba(42, 42, 42, 0.7);
+  transition: border-color .12s;
+}
+.weapon-combo-card:hover {
+  border-color: rgba(184, 154, 74, 0.9);
 }
 .weapon-combo-icons {
   display: flex;
@@ -798,7 +812,7 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
   color: var(--ink-mute);
   text-transform: uppercase;
   margin-bottom: 16px;
-  text-align: center;
+  text-align: center; background: rgba(42, 42, 42, 0.7); border: 1px solid var(--line-gold); border-radius: 8px; padding: 8px 12px; width: fit-content; margin-left: auto; margin-right: auto; 
 }
 
 .gear-slots-wrap {
@@ -869,7 +883,7 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
   color: var(--ink-mute);
   text-transform: uppercase;
   margin-bottom: 0;
-  text-align: center;
+  text-align: center; background: rgba(42, 42, 42, 0.7); border: 1px solid var(--line-gold); border-radius: 8px; padding: 8px 12px; width: fit-content; margin-left: auto; margin-right: auto; 
 }
 
 .gear-stats-row {
@@ -1149,10 +1163,7 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
 .guide-toc-item.level-4 { padding-left: 24px; font-size: 12px; }
 .guide-toc-item.level-5 { padding-left: 32px; font-size: 12px; }
 
-@media (max-width: 1100px) {
-  .toc-wrapper {
-    display: none;
-  }
+
 }
 
 .guide-shell {
@@ -1674,6 +1685,7 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
 
 /* Кнопка "Обратная связь" в header */
 .feedback-trigger {
+  white-space: nowrap;
   padding: 8px 16px;
   background: var(--panel);
   border: 1px solid var(--line);
@@ -1836,6 +1848,7 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
 
 /* Кнопка "Поддержать автора" в header */
 .donate-trigger {
+  white-space: nowrap;
   padding: 8px 16px;
   background: var(--panel);
   border: 1px solid var(--line-gold);
@@ -1965,3 +1978,84 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
   border-color: var(--accent);
   color: #0d0f12;
 }
+
+/* Menu 3: Folder style adapted for WA */
+.wa-layout { display: flex; gap: 30px; align-items: flex-start; margin-top: 20px; }
+.wa-sidebar { width: max-content; flex-shrink: 0; background: rgba(38, 38, 38, 0.7); padding: 20px; border-radius: 8px; border: 1px solid var(--line, #333); }
+.wa-cat-block { margin-bottom: 15px; }
+.wa-cat-title { font-size: 15px; font-weight: 600; color: var(--ink, #eee); padding: 6px 10px; background: rgba(255,255,255,0.03); border-radius: 4px; }
+.wa-cat-items { padding-left: 15px; border-left: 1px solid rgba(255, 255, 255, 0.6); margin-left: 15px; margin-top: 5px; }
+.wa-item { padding: 6px 0; cursor: pointer; color: var(--ink-mute, #aaa); font-size: 14.5px; transition: 0.2s; }
+.wa-item:before { content: "- "; opacity: 0.5; }
+.wa-item:hover { color: var(--gold, #d4af37); }
+.wa-item.active { color: var(--gold, #d4af37); font-weight: bold; }
+.wa-content-wrapper { flex-grow: 1; background: rgba(38, 38, 38, 0.7); padding: 30px; border-radius: 8px; border: 1px solid var(--line, #333); min-height: 400px; }
+
+/* Кнопка копирования WA */
+.wa-copy-btn { 
+  background: var(--gold, #d4af37); 
+  color: #111; 
+  font-weight: 600; 
+  border: none; 
+  padding: 8px 16px; 
+  border-radius: 4px; 
+  cursor: pointer; 
+  transition: 0.2s; 
+  font-family: inherit; 
+  font-size: 14px;
+  margin-top: 10px;
+}
+.wa-copy-btn:hover { 
+  background: #fff; 
+  transform: translateY(-1px);
+}
+.wa-copy-btn:active {
+  transform: translateY(1px);
+}
+
+.wa-row-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+.wa-title {
+    font-weight: bold;
+}
+
+@media (max-width: 1050px) {
+  .fs-header-inner {
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .fs-nav {
+    width: 100%;
+    order: 3;
+    margin-top: 5px;
+  }
+  .fs-header-actions {
+    order: 2;
+  }
+}
+@media (max-width: 600px) {
+  .fs-nav {
+    flex-wrap: wrap;
+  }
+  .fs-logo {
+    height: 36px;
+  }
+}
+
+
+
+
+
+
+
+
