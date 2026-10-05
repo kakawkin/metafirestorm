@@ -9,16 +9,16 @@
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-dark: #08090d;
-      --bg-card: rgba(14, 18, 28, 0.85);
-      --border-gold: #c89b3c;
-      --border-gold-dim: #785a28;
-      --border-gold-bright: #f0d078;
-      --gold-gradient: linear-gradient(180deg, #fff3d1 0%, #f1c96b 40%, #c49438 80%, #875c1b 100%);
-      --text-main: #e2e8f0;
-      --text-muted: #94a3b8;
-      --accent-ember: #ff7722;
-      --accent-fire: #e04414;
+      --bg-dark: #0e121e;
+      --bg-card: rgba(20, 26, 42, 0.7);
+      --border-gold: #e5b958;
+      --border-gold-dim: #9e7a36;
+      --border-gold-bright: #ffea9f;
+      --gold-gradient: linear-gradient(180deg, #ffffff 0%, #fff0c2 35%, #ffd269 70%, #dca338 100%);
+      --text-main: #f8fafc;
+      --text-muted: #cbd5e1;
+      --accent-ember: #ff9933;
+      --accent-fire: #ff5511;
     }
 
     * {
@@ -42,12 +42,77 @@
       line-height: 1.6;
     }
 
-    /* Фоновые эффекты и виньетка */
+    /* Эпический фоновый арт WoW (яркий, насыщенный) */
+    .bg-image {
+      position: fixed;
+      inset: 0;
+      background-image: url('bg_midnight.jpg');
+      background-position: center center;
+      background-size: cover;
+      background-repeat: no-repeat;
+      filter: brightness(0.96) saturate(1.22) contrast(1.02);
+      z-index: 0;
+      transform: scale(1.03);
+      animation: ambientPan 35s infinite alternate ease-in-out;
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+    }
+
+    @keyframes ambientPan {
+      0% { transform: scale(1.03) translate(0, 0); }
+      50% { transform: scale(1.07) translate(-0.8%, -0.8%); }
+      100% { transform: scale(1.05) translate(0.8%, 0.5%); }
+    }
+
+    /* Переключатель фонов */
+    .bg-switcher {
+      position: fixed;
+      top: 16px;
+      right: 18px;
+      z-index: 50;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(18, 24, 38, 0.8);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(240, 208, 120, 0.45);
+      border-radius: 20px;
+      padding: 4px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .bg-btn {
+      background: transparent;
+      border: none;
+      color: #cbd5e1;
+      font-size: 0.76rem;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 16px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
+
+    .bg-btn:hover {
+      color: #ffffff;
+    }
+
+    .bg-btn.active {
+      background: linear-gradient(180deg, #b88628 0%, #7d581a 100%);
+      color: #ffffff;
+      box-shadow: 0 2px 10px rgba(240, 190, 80, 0.4);
+      border: 1px solid rgba(255, 235, 160, 0.6);
+    }
+
+    /* Фоновые эффекты и виньетка - мягкие, светлые */
     .bg-vignette {
       position: fixed;
       inset: 0;
-      background: radial-gradient(circle at 50% 30%, rgba(35, 25, 55, 0.4) 0%, rgba(10, 11, 16, 0.85) 60%, #06070a 100%);
-      z-index: 0;
+      background: radial-gradient(circle at 50% 38%, rgba(15, 20, 36, 0.12) 0%, rgba(12, 16, 28, 0.4) 55%, rgba(6, 8, 15, 0.72) 100%),
+                  linear-gradient(180deg, rgba(255, 220, 120, 0.08) 0%, rgba(10, 14, 25, 0.25) 100%);
+      z-index: 1;
       pointer-events: none;
     }
 
@@ -56,11 +121,11 @@
       top: 15%;
       left: 50%;
       transform: translateX(-50%);
-      width: 700px;
-      height: 450px;
-      background: radial-gradient(circle, rgba(230, 140, 30, 0.15) 0%, rgba(180, 80, 20, 0.05) 50%, transparent 75%);
-      filter: blur(60px);
-      z-index: 1;
+      width: 900px;
+      height: 520px;
+      background: radial-gradient(circle, rgba(255, 220, 120, 0.3) 0%, rgba(255, 160, 50, 0.1) 45%, transparent 72%);
+      filter: blur(75px);
+      z-index: 2;
       pointer-events: none;
     }
 
@@ -70,7 +135,7 @@
       inset: 0;
       width: 100%;
       height: 100%;
-      z-index: 2;
+      z-index: 3;
       pointer-events: none;
     }
 
@@ -84,27 +149,28 @@
       text-align: center;
     }
 
-    /* Рамка в стиле WoW */
+    /* Рамка в стиле WoW - светлое матовое стекло с золотой инкрустацией */
     .wow-frame {
       position: relative;
-      background: var(--bg-card);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid var(--border-gold-dim);
-      border-radius: 8px;
+      background: rgba(20, 26, 42, 0.7);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(240, 208, 120, 0.55);
+      border-radius: 10px;
       padding: 48px 36px;
-      box-shadow: 0 0 50px rgba(0, 0, 0, 0.8),
-                  0 0 30px rgba(200, 155, 60, 0.12),
-                  inset 0 0 40px rgba(0, 0, 0, 0.7);
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.45),
+                  0 0 45px rgba(240, 200, 90, 0.22),
+                  inset 0 1px 2px rgba(255, 255, 255, 0.35),
+                  inset 0 0 35px rgba(200, 160, 60, 0.1);
     }
 
     /* Декоративные внутренние границы */
     .wow-frame::before {
       content: "";
       position: absolute;
-      inset: 4px;
-      border: 1px solid rgba(200, 155, 60, 0.25);
-      border-radius: 6px;
+      inset: 5px;
+      border: 1px solid rgba(255, 225, 140, 0.3);
+      border-radius: 7px;
       pointer-events: none;
     }
 
@@ -214,21 +280,24 @@
       font-size: 14px;
     }
 
-    /* Блок текста для пользователя */
+    /* Блок текста для пользователя - светлый, глубокий, контрастный */
     .user-content {
-      background: rgba(8, 11, 18, 0.7);
-      border: 1px solid rgba(200, 155, 60, 0.18);
-      border-radius: 6px;
+      background: rgba(14, 19, 32, 0.65);
+      border: 1px solid rgba(240, 208, 120, 0.45);
+      border-radius: 8px;
       padding: 24px 28px;
       margin-bottom: 30px;
       text-align: left;
+      box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.35), 0 6px 20px rgba(0, 0, 0, 0.25);
     }
 
     .user-content p {
-      color: #cbd5e1;
-      font-size: 1.02rem;
-      line-height: 1.75;
+      color: #ffffff;
+      font-size: 1.05rem;
+      line-height: 1.8;
       margin-bottom: 14px;
+      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.85);
+      font-weight: 450;
     }
 
     .user-content p:last-child {
@@ -236,8 +305,9 @@
     }
 
     .user-content strong {
-      color: #f6d899;
-      font-weight: 600;
+      color: #ffe69f;
+      font-weight: 700;
+      text-shadow: 0 0 10px rgba(255, 215, 100, 0.4);
     }
 
     /* Список планируемых нововведений */
@@ -322,13 +392,13 @@
 
     /* Донаты с логотипами платформ */
     .support-caption {
-      font-size: 0.88rem;
+      font-size: 0.92rem;
       letter-spacing: 1.5px;
-      color: #dfcaa2;
+      color: #ffeaa7;
       margin-bottom: 16px;
       text-transform: uppercase;
-      font-weight: 600;
-      opacity: 0.9;
+      font-weight: 700;
+      text-shadow: 0 0 12px rgba(255, 215, 100, 0.5);
     }
 
     .support-wrapper {
@@ -343,30 +413,30 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      height: 56px;
-      min-width: 210px;
+      height: 58px;
+      min-width: 220px;
       padding: 10px 24px;
-      background: rgba(18, 23, 36, 0.75);
-      border: 1px solid rgba(200, 155, 60, 0.28);
+      background: rgba(28, 36, 58, 0.82);
+      border: 1px solid rgba(240, 208, 120, 0.5);
       border-radius: 8px;
       text-decoration: none;
       transition: all 0.25s ease;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35), 0 0 15px rgba(240, 200, 100, 0.15);
     }
 
     .support-card:hover {
       transform: translateY(-2px);
-      background: rgba(26, 33, 50, 0.9);
+      background: rgba(38, 48, 76, 0.92);
     }
 
     .support-card.card-da:hover {
       border-color: #f57d07;
-      box-shadow: 0 0 22px rgba(245, 125, 7, 0.35);
+      box-shadow: 0 0 25px rgba(245, 125, 7, 0.5);
     }
 
     .support-card.card-dp:hover {
       border-color: #ff6b6b;
-      box-shadow: 0 0 22px rgba(255, 107, 107, 0.35);
+      box-shadow: 0 0 25px rgba(255, 107, 107, 0.5);
     }
 
     .support-card img {
@@ -417,9 +487,17 @@
 </head>
 <body>
 
+  <!-- Фоновые слои (WoW Art) -->
+  <div class="bg-image" id="bg-layer"></div>
   <div class="bg-vignette"></div>
   <div class="bg-glow"></div>
   <canvas id="ember-canvas"></canvas>
+
+  <!-- Переключатель фона WoW -->
+  <div class="bg-switcher">
+    <button class="bg-btn active" id="btn-midnight" onclick="switchBg('bg_midnight.jpg', this)">⚔ Midnight</button>
+    <button class="bg-btn" id="btn-tww" onclick="switchBg('bg.jpg', this)">🛡 Dornogal</button>
+  </div>
 
   <div class="container">
     <div class="wow-frame">
@@ -491,12 +569,12 @@
       particles.push({
         x: Math.random() * width,
         y: Math.random() * height,
-        size: Math.random() * 2.2 + 0.6,
+        size: Math.random() * 2.5 + 0.8,
         speedY: Math.random() * 0.7 + 0.25,
         speedX: (Math.random() - 0.5) * 0.4,
-        opacity: Math.random() * 0.7 + 0.2,
-        decay: Math.random() * 0.004 + 0.002,
-        color: Math.random() > 0.4 ? '240, 180, 60' : '255, 110, 30'
+        opacity: Math.random() * 0.8 + 0.25,
+        decay: Math.random() * 0.003 + 0.0015,
+        color: Math.random() > 0.35 ? '255, 220, 120' : '255, 180, 80'
       });
     }
 
@@ -511,14 +589,14 @@
         if (p.y < 0 || p.opacity <= 0) {
           p.y = height + 10;
           p.x = Math.random() * width;
-          p.opacity = Math.random() * 0.7 + 0.2;
+          p.opacity = Math.random() * 0.8 + 0.25;
         }
 
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(${p.color}, ${p.opacity})`;
-        ctx.shadowBlur = 8;
-        ctx.shadowColor = `rgba(${p.color}, 0.8)`;
+        ctx.shadowBlur = 12;
+        ctx.shadowColor = `rgba(${p.color}, 0.9)`;
         ctx.fill();
       });
 
@@ -526,6 +604,19 @@
     }
 
     animate();
+
+    /* Переключение фонов WoW */
+    function switchBg(imageUrl, btn) {
+      const bg = document.getElementById('bg-layer');
+      if (!bg) return;
+      bg.style.opacity = '0.2';
+      setTimeout(() => {
+        bg.style.backgroundImage = `url('${imageUrl}')`;
+        bg.style.opacity = '1';
+      }, 200);
+      document.querySelectorAll('.bg-btn').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+    }
   </script>
 </body>
 </html>
