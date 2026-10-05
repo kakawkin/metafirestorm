@@ -1,2 +1,0 @@
-# Netlify SPA redirect — любой путь отдаёт index.html (200 = rewrite, не redirect)
-/*    /index.html   200
